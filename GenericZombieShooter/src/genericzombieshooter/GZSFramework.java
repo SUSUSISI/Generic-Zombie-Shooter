@@ -70,22 +70,41 @@ public class GZSFramework {
     private ItemFactory itemFactory;
     public ItemFactory getItemFactory() { return this.itemFactory; }
 
+    
+    private void resetObjects() {
+    	currentWave = 1;
+    	player.reset();
+    	player.resetStatistics();
+    	wave = new ZombieWave(currentWave);
+    	levelScreen.resetLevels();
+    	loadout.setCurrentWeapon(Globals.HANDGUN.getName());
+    }
+    
+    private void resetGame() {
+    	Globals.resetState();
+    	Globals.resetInput();
+    	Globals.resetWeapons();
+    	resetObjects();
+    }
+    
     public GZSFramework(JFrame frame_) {
         frame = frame_;
         store = new StoreWindow();
         levelScreen = new LevelScreen();
         canvas = new GZSCanvas(this, store, levelScreen);
         
-        Globals.resetState();
-        Globals.resetInput();
+        currentWave = 1;
+        player = new Player(((Globals.W_WIDTH / 2) - 24), ((Globals.W_HEIGHT / 2) - 24), 48, 48);
+        wave = new ZombieWave(currentWave);
+        loadout = new WeaponsLoadout(player);
+        itemFactory = new ItemFactory();
         
-        { // Begin initializing game objects.
-            player = new Player(((Globals.W_WIDTH / 2) - 24), ((Globals.W_HEIGHT / 2) - 24), 48, 48);
-            currentWave = 1;
-            wave = new ZombieWave(currentWave);
-            loadout = new WeaponsLoadout(player);
-            itemFactory = new ItemFactory();
-        } // End game object initialization.
+        
+        resetGame();
+        
+        
+        
+       
 
         { // Begin adding key and mouse listeners to canvas.
             canvas.addKeyListener(new KeyAdapter() {
@@ -195,14 +214,9 @@ public class GZSFramework {
                         if(!Globals.started) {
                             Globals.started = true;
                             Globals.gameTime.reset();
-                            Globals.nextWave = Globals.gameTime.getElapsedMillis() + 3000;
                         }
                         if(Globals.started && Globals.deathScreen) {
-                            Globals.started = false;
-                            Globals.deathScreen = false;
-                            currentWave = 1;
-                            wave = new ZombieWave(currentWave);
-                            player.resetStatistics();
+                            resetGame();
                         }
                         if(Globals.started && Globals.storeOpen) store.click(m, player);
                         else if(Globals.started && Globals.levelScreenOpen) levelScreen.click(m, player);
@@ -360,16 +374,8 @@ public class GZSFramework {
                     if(player.getLives() == 0) {
                         // Show death screen and reset player.
                         Globals.deathScreen = true;
-                        Globals.gameTime.reset();
                         synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.clear(); }
-                        player.reset();
-                        levelScreen.resetLevels();
-                        itemFactory.reset();
-                        for(boolean k : Globals.keys) k = false;
-                        for(boolean b : Globals.buttons) b = false;
-                        Globals.resetWeapons();
                     }
-                    loadout.setCurrentWeapon(Globals.HANDGUN.getName());
                     Sounds.FLAMETHROWER.getAudio().stop();
                 }
 
