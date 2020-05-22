@@ -76,25 +76,9 @@ public class GZSFramework {
         levelScreen = new LevelScreen();
         canvas = new GZSCanvas(this, store, levelScreen);
         
-        Globals.gameTime = new GameTime();
-        Globals.started = false;
-        Globals.paused = false;
-        Globals.storeOpen = false;
-        Globals.levelScreenOpen = false;
-        Globals.crashed = false;
-        Globals.deathScreen = false;
-        Globals.waveInProgress = false;
-        Globals.nextWave = Globals.gameTime.getElapsedMillis() + 3000;
-
-        { // Begin initializing member variables.
-            Globals.keys = new boolean[4];
-            for (boolean k : Globals.keys) k = false;
-            Globals.buttons = new boolean[2];
-            for (boolean b : Globals.buttons) b = false;
-
-            Globals.mousePos = new Point(0, 0);
-        } // End member variable initialization.
-
+        Globals.resetState();
+        Globals.resetInput();
+        
         { // Begin initializing game objects.
             player = new Player(((Globals.W_WIDTH / 2) - 24), ((Globals.W_HEIGHT / 2) - 24), 48, 48);
             currentWave = 1;

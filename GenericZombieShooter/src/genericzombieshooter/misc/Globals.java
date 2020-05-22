@@ -80,6 +80,20 @@ public class Globals {
     public static boolean waveInProgress; // Whether the player is fighting or waiting for another wave.
     public static long nextWave;
     
+    public static void resetState() {
+    	gameTime = new GameTime();
+        
+    	//running = false;
+    	started = false;
+    	crashed = false;
+        paused = false;
+        storeOpen = false;
+        levelScreenOpen = false;
+        deathScreen = false;
+        waveInProgress = false;
+        nextWave = Globals.gameTime.getElapsedMillis() + 3000;
+    }
+    
     // Input Related
     public static boolean [] keys; // The state of the game key controls.
     public static boolean [] buttons; // The state of the game mouse button controls.
