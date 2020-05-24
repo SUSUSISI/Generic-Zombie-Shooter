@@ -87,6 +87,7 @@ public class GZSFramework {
     	resetObjects();
     }
     
+   
     public GZSFramework(JFrame frame_) {
         frame = frame_;
         store = new StoreWindow();
@@ -101,12 +102,151 @@ public class GZSFramework {
         
         
         resetGame();
-        
-        
-        
-       
+        initializeListeners();
+        Sounds.init();
+        initializeThread();
+    }
 
-        { // Begin adding key and mouse listeners to canvas.
+    /**
+     * Updates the game objects in the animation loop.
+     **/
+    public void update() {
+        // Update the game time.
+        if(Globals.started && !Globals.crashed && !Globals.deathScreen) {
+            if(Globals.paused || Globals.storeOpen || Globals.levelScreenOpen) Globals.gameTime.increaseOffset();
+            else Globals.gameTime.update();
+        }
+        
+        // Update the game itself.
+        if(Globals.started && !Globals.paused && !Globals.crashed && !Globals.deathScreen) {
+            try {
+                player.update();
+
+                if(!Globals.waveInProgress) {
+                    // If the player is in between waves, check if the countdown has reached zero.
+                    if(Globals.gameTime.getElapsedMillis() >= Globals.nextWave) createWave();
+                }
+
+                // Update all zombies in the current wave.
+                if(Globals.waveInProgress) this.wave.update(player, itemFactory);
+
+                // Check player for damage.
+                if(Globals.waveInProgress) this.wave.checkPlayerDamage(player);
+
+                // Update Items
+                itemFactory.update(player);
+
+                // Check to see if the player is still alive. If not, take away a life and reset.
+                if(!player.isAlive()) {
+                    player.die();
+                    if(player.getLives() == 0) {
+                        // Show death screen and reset player.
+                        Globals.deathScreen = true;
+                        synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.clear(); }
+                    }
+                    Sounds.FLAMETHROWER.getAudio().stop();
+                }
+
+                { // Begin weapon updates.
+                    Iterator<Weapon> it = this.player.getWeaponsMap().values().iterator();
+                    while(it.hasNext()) {
+                        Weapon w = it.next();
+                        w.updateWeapon(this.wave.getZombies());
+                    }
+                } // End weapon updates.
+
+                // Check for end of wave.
+                if(Globals.waveInProgress && this.wave.waveFinished()) {
+                    Globals.waveInProgress = false;
+                    Globals.nextWave = Globals.gameTime.getElapsedMillis() + (10 * 1000);
+                }
+                
+                { // Delete expired messages.
+                    synchronized(Globals.GAME_MESSAGES) {
+                        Iterator<Message> it = Globals.GAME_MESSAGES.iterator();
+                        while(it.hasNext()) {
+                            Message m = it.next();
+                            if(!m.isAlive()) {
+                                it.remove();
+                                continue;
+                            }
+                        }
+                    }
+                } // End deleting expired messages.
+            } catch(Exception e) {
+                createErrorWindow(e);
+            }
+        }
+    }
+    
+    private void createWave() {
+        try {
+            this.wave = new ZombieWave(this.currentWave);
+            this.currentWave++;
+            Globals.waveInProgress = true;
+        } catch(Exception e) {
+            createErrorWindow(e);
+        }
+    }
+    
+    public static BufferedImage loadImage(String filename) {
+        try {
+            // Create a new BufferedImage from the file that supports transparency.
+            BufferedImage bi = ImageIO.read(GZSFramework.class.getResource(filename));
+            BufferedImage buffer = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = (Graphics2D)buffer.createGraphics();
+            g2d.drawImage(bi, 0, 0, null);
+            g2d.dispose();
+            return buffer;
+        } catch(IOException io) {
+            System.out.println(io.getMessage());
+            System.out.println("Error reading file: " + filename);
+            return null;
+        }
+    }
+    
+    public void createErrorWindow(Exception e) {
+        ErrorWindow error = new ErrorWindow(e);
+        Globals.crashed = true;
+        frame.getContentPane().removeAll();
+        frame.add(error);
+        frame.pack();
+        frame.setVisible(true);
+    }
+    
+    private void initializeThread() {
+        Globals.animation = new Runnable() {
+            @Override
+            public void run() {
+                Globals.running = true;
+                while (Globals.running) {
+                    try {
+                        update();
+                        canvas.repaint();
+                        Thread.sleep(Globals.SLEEP_TIME);
+                    } catch (InterruptedException ie) {
+                        System.out.println("Error occurred in main thread...");
+                        createErrorWindow(ie);
+                    } catch(Exception e) {
+                        createErrorWindow(e);
+                    }
+                }
+                TinySound.shutdown();
+                System.exit(0);
+            }
+        };
+        
+        Globals.mainThread = new Thread(Globals.animation);
+    }
+    
+    public void startThread() {
+        Globals.mainThread.start();
+    }
+    
+    
+    
+    private void initializeListeners() {
+    	{ // Begin adding key and mouse listeners to canvas.
             canvas.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent k) {
@@ -333,143 +473,6 @@ public class GZSFramework {
                 }
             });
         } // End adding key and mouse listeners to canvas.
-
-        Sounds.init();
-        initializeThread();
-        startThread();
-    }
-
-    /**
-     * Updates the game objects in the animation loop.
-     **/
-    public void update() {
-        // Update the game time.
-        if(Globals.started && !Globals.crashed && !Globals.deathScreen) {
-            if(Globals.paused || Globals.storeOpen || Globals.levelScreenOpen) Globals.gameTime.increaseOffset();
-            else Globals.gameTime.update();
-        }
-        
-        // Update the game itself.
-        if(Globals.started && !Globals.paused && !Globals.crashed && !Globals.deathScreen) {
-            try {
-                player.update();
-
-                if(!Globals.waveInProgress) {
-                    // If the player is in between waves, check if the countdown has reached zero.
-                    if(Globals.gameTime.getElapsedMillis() >= Globals.nextWave) createWave();
-                }
-
-                // Update all zombies in the current wave.
-                if(Globals.waveInProgress) this.wave.update(player, itemFactory);
-
-                // Check player for damage.
-                if(Globals.waveInProgress) this.wave.checkPlayerDamage(player);
-
-                // Update Items
-                itemFactory.update(player);
-
-                // Check to see if the player is still alive. If not, take away a life and reset.
-                if(!player.isAlive()) {
-                    player.die();
-                    if(player.getLives() == 0) {
-                        // Show death screen and reset player.
-                        Globals.deathScreen = true;
-                        synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.clear(); }
-                    }
-                    Sounds.FLAMETHROWER.getAudio().stop();
-                }
-
-                { // Begin weapon updates.
-                    Iterator<Weapon> it = this.player.getWeaponsMap().values().iterator();
-                    while(it.hasNext()) {
-                        Weapon w = it.next();
-                        w.updateWeapon(this.wave.getZombies());
-                    }
-                } // End weapon updates.
-
-                // Check for end of wave.
-                if(Globals.waveInProgress && this.wave.waveFinished()) {
-                    Globals.waveInProgress = false;
-                    Globals.nextWave = Globals.gameTime.getElapsedMillis() + (10 * 1000);
-                }
-                
-                { // Delete expired messages.
-                    synchronized(Globals.GAME_MESSAGES) {
-                        Iterator<Message> it = Globals.GAME_MESSAGES.iterator();
-                        while(it.hasNext()) {
-                            Message m = it.next();
-                            if(!m.isAlive()) {
-                                it.remove();
-                                continue;
-                            }
-                        }
-                    }
-                } // End deleting expired messages.
-            } catch(Exception e) {
-                createErrorWindow(e);
-            }
-        }
     }
     
-    private void createWave() {
-        try {
-            this.wave = new ZombieWave(this.currentWave);
-            this.currentWave++;
-            Globals.waveInProgress = true;
-        } catch(Exception e) {
-            createErrorWindow(e);
-        }
-    }
-    
-    public static BufferedImage loadImage(String filename) {
-        try {
-            // Create a new BufferedImage from the file that supports transparency.
-            BufferedImage bi = ImageIO.read(GZSFramework.class.getResource(filename));
-            BufferedImage buffer = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = (Graphics2D)buffer.createGraphics();
-            g2d.drawImage(bi, 0, 0, null);
-            g2d.dispose();
-            return buffer;
-        } catch(IOException io) {
-            System.out.println(io.getMessage());
-            System.out.println("Error reading file: " + filename);
-            return null;
-        }
-    }
-    
-    public void createErrorWindow(Exception e) {
-        ErrorWindow error = new ErrorWindow(e);
-        Globals.crashed = true;
-        frame.getContentPane().removeAll();
-        frame.add(error);
-        frame.pack();
-        frame.setVisible(true);
-    }
-    
-    private void initializeThread() {
-        Globals.animation = new Runnable() {
-            @Override
-            public void run() {
-                Globals.running = true;
-                while (Globals.running) {
-                    try {
-                        update();
-                        canvas.repaint();
-                        Thread.sleep(Globals.SLEEP_TIME);
-                    } catch (InterruptedException ie) {
-                        System.out.println("Error occurred in main thread...");
-                        createErrorWindow(ie);
-                    } catch(Exception e) {
-                        createErrorWindow(e);
-                    }
-                }
-                TinySound.shutdown();
-                System.exit(0);
-            }
-        };
-    }
-    
-    private void startThread() {
-        new Thread(Globals.animation).start();
-    }
 }

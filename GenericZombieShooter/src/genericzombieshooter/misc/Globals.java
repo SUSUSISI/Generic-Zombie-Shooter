@@ -67,6 +67,7 @@ public class Globals {
     public static final int ZOMBIE_BOSS_STITCHES_TYPE = 9;
     
     // Game-State Related
+    public static Thread mainThread;
     public static Runnable animation; // The primary animation thread.
     public static GameTime gameTime = new GameTime(); // Used to keep track of the time.
     
