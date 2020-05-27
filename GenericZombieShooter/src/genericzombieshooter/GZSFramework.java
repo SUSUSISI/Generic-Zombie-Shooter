@@ -110,73 +110,30 @@ public class GZSFramework {
     /**
      * Updates the game objects in the animation loop.
      **/
+       
     public void update() {
         // Update the game time.
         if(Globals.started && !Globals.crashed && !Globals.deathScreen) {
-            if(Globals.paused || Globals.storeOpen || Globals.levelScreenOpen) Globals.gameTime.increaseOffset();
-            else Globals.gameTime.update();
+            if(Globals.paused) Globals.gameTime.increaseOffset();
+            else{
+            	Globals.gameTime.update();
+                try {
+                    player.update();
+                    itemFactory.update(player);
+
+                    waveUpdate();
+                    checkPlayerLife();
+                    weaponUpdate();
+                    checkMessage();
+
+                } catch(Exception e) {
+                    createErrorWindow(e);
+                }
+            }
+            
         }
         
-        // Update the game itself.
-        if(Globals.started && !Globals.paused && !Globals.crashed && !Globals.deathScreen) {
-            try {
-                player.update();
-
-                if(!Globals.waveInProgress) {
-                    // If the player is in between waves, check if the countdown has reached zero.
-                    if(Globals.gameTime.getElapsedMillis() >= Globals.nextWave) createWave();
-                }
-
-                // Update all zombies in the current wave.
-                if(Globals.waveInProgress) this.wave.update(player, itemFactory);
-
-                // Check player for damage.
-                if(Globals.waveInProgress) this.wave.checkPlayerDamage(player);
-
-                // Update Items
-                itemFactory.update(player);
-
-                // Check to see if the player is still alive. If not, take away a life and reset.
-                if(!player.isAlive()) {
-                    player.die();
-                    if(player.getLives() == 0) {
-                        // Show death screen and reset player.
-                        Globals.deathScreen = true;
-                        synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.clear(); }
-                    }
-                    Sounds.FLAMETHROWER.getAudio().stop();
-                }
-
-                { // Begin weapon updates.
-                    Iterator<Weapon> it = this.player.getWeaponsMap().values().iterator();
-                    while(it.hasNext()) {
-                        Weapon w = it.next();
-                        w.updateWeapon(this.wave.getZombies());
-                    }
-                } // End weapon updates.
-
-                // Check for end of wave.
-                if(Globals.waveInProgress && this.wave.waveFinished()) {
-                    Globals.waveInProgress = false;
-                    Globals.nextWave = Globals.gameTime.getElapsedMillis() + (10 * 1000);
-                }
-                
-                { // Delete expired messages.
-                    synchronized(Globals.GAME_MESSAGES) {
-                        Iterator<Message> it = Globals.GAME_MESSAGES.iterator();
-                        while(it.hasNext()) {
-                            Message m = it.next();
-                            if(!m.isAlive()) {
-                                it.remove();
-                                continue;
-                            }
-                        }
-                    }
-                } // End deleting expired messages.
-            } catch(Exception e) {
-                createErrorWindow(e);
-            }
-        }
+        
     }
     
     private void createWave() {
@@ -242,6 +199,61 @@ public class GZSFramework {
     public void startThread() {
         Globals.mainThread.start();
     }
+    
+    
+    private void waveUpdate() {
+    	if(!Globals.waveInProgress) {
+            // If the player is in between waves, check if the countdown has reached zero.
+            if(Globals.gameTime.getElapsedMillis() >= Globals.nextWave) createWave();
+        } else {
+        	this.wave.update(player, itemFactory);
+        	this.wave.checkPlayerDamage(player);
+        	if(this.wave.waveFinished()) {
+        		Globals.waveInProgress = false;
+                Globals.nextWave = Globals.gameTime.getElapsedMillis() + (10 * 1000);                    		
+        	}
+        }
+    }
+    
+    private void checkPlayerLife() {
+    	// Check to see if the player is still alive. If not, take away a life and reset.
+        if(!player.isAlive()) {
+            player.die();
+            if(player.getLives() == 0) {
+                // Show death screen and reset player.
+                Globals.deathScreen = true;
+                synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.clear(); }
+            }
+            Sounds.FLAMETHROWER.getAudio().stop();
+        }
+    }
+    
+    private void weaponUpdate() {
+        { // Begin weapon updates.
+            Iterator<Weapon> it = this.player.getWeaponsMap().values().iterator();
+            while(it.hasNext()) {
+                Weapon w = it.next();
+                w.updateWeapon(this.wave.getZombies());
+            }
+        } // End weapon updates.    	
+    }
+    
+    private void checkMessage() {
+        { // Delete expired messages.
+            synchronized(Globals.GAME_MESSAGES) {
+                Iterator<Message> it = Globals.GAME_MESSAGES.iterator();
+                while(it.hasNext()) {
+                    Message m = it.next();
+                    if(!m.isAlive()) {
+                        it.remove();
+                        continue;
+                    }
+                }
+            }
+        } // End deleting expired messages.
+    }
+    
+    
     
     
     
