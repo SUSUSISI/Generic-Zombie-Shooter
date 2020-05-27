@@ -67,8 +67,9 @@ public class Globals {
     public static final int ZOMBIE_BOSS_STITCHES_TYPE = 9;
     
     // Game-State Related
+    public static Thread mainThread;
     public static Runnable animation; // The primary animation thread.
-    public static GameTime gameTime; // Used to keep track of the time.
+    public static GameTime gameTime = new GameTime(); // Used to keep track of the time.
     
     public static boolean running; // Whether or not the game is currently running.
     public static boolean started;
@@ -81,7 +82,7 @@ public class Globals {
     public static long nextWave;
     
     public static void resetState() {
-    	gameTime = new GameTime();
+    	gameTime.reset();
         
     	//running = false;
     	started = false;
@@ -98,6 +99,16 @@ public class Globals {
     public static boolean [] keys; // The state of the game key controls.
     public static boolean [] buttons; // The state of the game mouse button controls.
     public static Point mousePos; // The current position of the mouse on the screen.
+    
+    public static void resetInput() {
+    	Globals.keys = new boolean[4];
+        for (boolean k : Globals.keys) k = false;
+        Globals.buttons = new boolean[2];
+        for (boolean b : Globals.buttons) b = false;
+
+        Globals.mousePos = new Point(0, 0);
+    }
+    
     
     // Static Weapons
     public static Handgun HANDGUN = new Handgun();

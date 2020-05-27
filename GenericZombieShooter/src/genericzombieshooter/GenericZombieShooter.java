@@ -54,5 +54,8 @@ public class GenericZombieShooter extends JApplet {
         frame.setResizable(false);
         frame.pack();
         frame.setVisible(true);
+        
+        
+        framework.startThread();
     }
 }
