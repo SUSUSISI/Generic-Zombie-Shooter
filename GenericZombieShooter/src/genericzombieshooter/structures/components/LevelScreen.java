@@ -77,61 +77,60 @@ public class LevelScreen {
     }
     
     public void draw(Graphics2D g2d, Player player) {
-        // Draw the background image.
         g2d.drawImage(this.background, 0, 0, null);
-        { // Draw the rectangles in the map.
-            FontMetrics metrics = g2d.getFontMetrics();
-            { // Draw the experience bar.
-                g2d.setColor(new Color(67, 158, 22));
-                Rectangle2D.Double expBar = this.rects.get(LevelScreen.EXP_BAR_NAME);
-                double w = ((double)player.getExp() / (double)player.getNextLevelExp()) * expBar.width;
-                g2d.fillRect((int)expBar.x, (int)expBar.y, (int)w, (int)expBar.height);
-                g2d.setColor(Color.WHITE);
-                String s = player.getExp() + " / " + player.getNextLevelExp();
-                int h = metrics.getHeight();
-                g2d.drawString(s, (int)(expBar.x + 5), (int)((expBar.y + (expBar.height / 2)) + (h / 3)));
-            } // End drawing the experience bar.
-            { // Draw the health attribute progress bar.
-                Rectangle2D.Double healthBar = this.rects.get(LevelScreen.HEALTH_BAR_NAME);
-                for(int i = 0; i < this.healthLevel; i++) {
-                    int x = (int)((healthBar.x + 1) + (i * 48));
-                    g2d.setColor(new Color(209, 21, 33));
-                    g2d.fillRect(x, (int)healthBar.y, 48, 22);
-                    g2d.setColor(Color.BLACK);
-                    g2d.drawRect(x, (int)healthBar.y, 48, 22);
-                }
-            } // End drawing the health attribute progress bar.
-            { // Draw the damage attribute progress bar.
-                Rectangle2D.Double damageBar = this.rects.get(LevelScreen.DAMAGE_BAR_NAME);
-                for(int i = 0; i < this.damageLevel; i++) {
-                    int x = (int)((damageBar.x + 1) + (i * 48));
-                    g2d.setColor(new Color(209, 21, 33));
-                    g2d.fillRect(x, (int)damageBar.y, 48, 22);
-                    g2d.setColor(Color.BLACK);
-                    g2d.drawRect(x, (int)damageBar.y, 48, 22);
-                }
-            } // End drawing the damage attribute progress bar.
-            { // Draw the speed attribute progress bar.
-                Rectangle2D.Double speedBar = this.rects.get(LevelScreen.SPEED_BAR_NAME);
-                for(int i = 0; i < this.speedLevel; i++) {
-                    int x = (int)((speedBar.x + 1) + (i * 48));
-                    g2d.setColor(new Color(209, 21, 33));
-                    g2d.fillRect(x, (int)speedBar.y, 48, 22);
-                    g2d.setColor(Color.BLACK);
-                    g2d.drawRect(x, (int)speedBar.y, 48, 22);
-                }
-            } // End drawing the speed attribute progress bar.
-            { // Draw the number of skill points the player has.
-                Font f = g2d.getFont();
-                g2d.setFont(new Font("Arial", Font.BOLD, 30));
-                g2d.setColor(Color.WHITE);
-                Rectangle2D.Double rect = this.rects.get(LevelScreen.SKILL_POINTS_LABEL_NAME);
-                int x = (int)((rect.x + rect.width) + 10);
-                g2d.drawString(("" + player.getSkillPoints()), x, (int)((rect.y + rect.height) - 5));
-                g2d.setFont(f);
-            } // End drawing the number of skill points the player has.
-        } // End drawing mapped rectangles.
+        drawExpProgressBar(g2d,player);
+        drawHealthProgressBar(g2d);
+        drawDamageProgressBar(g2d);
+        drawSpeedProgressBar(g2d);
+        drawSkillPoints(g2d,player);
     }
+    
+    private void drawExpProgressBar(Graphics2D g2d, Player player) {
+   	 FontMetrics metrics = g2d.getFontMetrics();
+        g2d.setColor(new Color(67, 158, 22));
+        Rectangle2D.Double expBar = this.rects.get(LevelScreen.EXP_BAR_NAME);
+        double w = ((double)player.getExp() / (double)player.getNextLevelExp()) * expBar.width;
+        g2d.fillRect((int)expBar.x, (int)expBar.y, (int)w, (int)expBar.height);
+        g2d.setColor(Color.WHITE);
+        String s = player.getExp() + " / " + player.getNextLevelExp();
+        int h = metrics.getHeight();
+        g2d.drawString(s, (int)(expBar.x + 5), (int)((expBar.y + (expBar.height / 2)) + (h / 3)));
+   }
+   private void drawHealthProgressBar(Graphics2D g2d){
+       Rectangle2D.Double healthBar = this.rects.get(LevelScreen.HEALTH_BAR_NAME);
+       drawProgressBar(g2d,healthBar,this.healthLevel);
+   }
+   
+   private void drawDamageProgressBar(Graphics2D g2d){
+       Rectangle2D.Double damageBar = this.rects.get(LevelScreen.DAMAGE_BAR_NAME);
+       drawProgressBar(g2d,damageBar,this.damageLevel);
+   }
+   
+   private void drawSpeedProgressBar(Graphics2D g2d) {
+   	Rectangle2D.Double speedBar = this.rects.get(LevelScreen.SPEED_BAR_NAME);
+   	drawProgressBar(g2d,speedBar,this.speedLevel);
+   }
+   
+   private void drawProgressBar(Graphics2D g2d, Rectangle2D.Double bar, int progress) {
+   	for(int i = 0; i < progress; i++) {
+           int x = (int)((bar.x + 1) + (i * 48));
+           g2d.setColor(new Color(209, 21, 33));
+           g2d.fillRect(x, (int)bar.y, 48, 22);
+           g2d.setColor(Color.BLACK);
+           g2d.drawRect(x, (int)bar.y, 48, 22);
+       }
+   }
+   
+   private void drawSkillPoints(Graphics2D g2d, Player player) {
+   	Font f = g2d.getFont();
+       g2d.setFont(new Font("Arial", Font.BOLD, 30));
+       g2d.setColor(Color.WHITE);
+       Rectangle2D.Double rect = this.rects.get(LevelScreen.SKILL_POINTS_LABEL_NAME);
+       int x = (int)((rect.x + rect.width) + 10);
+       g2d.drawString(("" + player.getSkillPoints()), x, (int)((rect.y + rect.height) - 5));
+       g2d.setFont(f);
+   }
+    
     
     public void click(MouseEvent m, Player player) {
         // Assume click is left mouse since it is checked before it is passed.
