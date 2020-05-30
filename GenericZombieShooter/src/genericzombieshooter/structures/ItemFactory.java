@@ -74,8 +74,10 @@ public class ItemFactory {
         long currentTime = Globals.gameTime.getElapsedMillis();
         if(currentTime >= this.nextHealth) {
             // Drop Health Pack
-            Item i = createItem(0, player);
-            this.itemsDropped.add(i);
+            
+        	Item i = createItemToHealthPack(player);
+        	
+        	this.itemsDropped.add(i);
             this.nextHealth = currentTime + HealthPack.SPAWN_TIME;
         }
         if(currentTime >= this.nextAmmo) {
@@ -87,8 +89,10 @@ public class ItemFactory {
                 if(!w.ammoFull()) nonFullWeaponDetected = true;
             }
             if(nonFullWeaponDetected) {
-                Item i = createItem(1, player);
-                this.itemsDropped.add(i);
+            	
+                Item i = createItemToAmmoCrate(player);
+            	
+            	this.itemsDropped.add(i);
             }
             this.nextAmmo = currentTime + Ammo.SPAWN_TIME;
         }
@@ -126,28 +130,27 @@ public class ItemFactory {
         if(i != null) this.itemsDropped.add(i);
     }
     
-    private Item createItem(int type, Player player) {
-        if(type == 0) {
-            // Return a Health Pack
-            int healAmount = Globals.r.nextInt(75 - 50 + 1) + 50;
+    private Item createItemToHealthPack(Player player) {
+    	int healAmount = Globals.r.nextInt(75 - 50 + 1) + 50;
+        double x = Globals.r.nextInt((Globals.W_WIDTH - 20) - 20 + 1) + 20;
+        double y = Globals.r.nextInt((int)((Globals.W_HEIGHT - (WeaponsLoadout.BAR_HEIGHT + 10)) - 20 + 1)) + 20;
+        Item i = new HealthPack(healAmount, new Point2D.Double(x, y));
+        return i;
+    }
+    
+    private Item createItemToAmmoCrate(Player player) {
+    	List<String> weaponNames = new ArrayList<String>();
+        for(String name : player.getWeaponsMap().keySet()) weaponNames.add(name);
+        int w = Globals.r.nextInt(weaponNames.size());
+        String wName = weaponNames.get(w);
+        if(player.getWeapon(wName).ammoFull()) return createItemToAmmoCrate(player);
+        else {
+            int ammo = player.getWeapon(wName).getAmmoPackAmount();
             double x = Globals.r.nextInt((Globals.W_WIDTH - 20) - 20 + 1) + 20;
             double y = Globals.r.nextInt((int)((Globals.W_HEIGHT - (WeaponsLoadout.BAR_HEIGHT + 10)) - 20 + 1)) + 20;
-            Item i = new HealthPack(healAmount, new Point2D.Double(x, y));
+            Item i = new Ammo(wName, ammo, new Point2D.Double(x, y));
             return i;
-        } else if(type == 1) {
-            // Return an Ammo Crate
-            List<String> weaponNames = new ArrayList<String>();
-            for(String name : player.getWeaponsMap().keySet()) weaponNames.add(name);
-            int w = Globals.r.nextInt(weaponNames.size());
-            String wName = weaponNames.get(w);
-            if(player.getWeapon(wName).ammoFull()) return createItem(1, player);
-            else {
-                int ammo = player.getWeapon(wName).getAmmoPackAmount();
-                double x = Globals.r.nextInt((Globals.W_WIDTH - 20) - 20 + 1) + 20;
-                double y = Globals.r.nextInt((int)((Globals.W_HEIGHT - (WeaponsLoadout.BAR_HEIGHT + 10)) - 20 + 1)) + 20;
-                Item i = new Ammo(wName, ammo, new Point2D.Double(x, y));
-                return i;
-            }
-        } else return null; // If a null item is ever returned, you done did somethin' bad.
+        }
     }
+    
 }
