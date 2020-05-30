@@ -96,10 +96,7 @@ public class ItemFactory {
             }
             this.nextAmmo = currentTime + Ammo.SPAWN_TIME;
         }
-        
-        /* If the player has picked up an item or the item has
-           disappeared in the active list, remove it and add it 
-           to the withdrawn list. */
+
         {
             Iterator<Item> it = this.itemsActive.iterator();
             while(it.hasNext()) {
