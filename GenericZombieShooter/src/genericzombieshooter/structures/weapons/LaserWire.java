@@ -91,13 +91,13 @@ public class LaserWire extends Weapon {
         { // Update particles.
             synchronized(this.particles) {
                 if(!this.particles.isEmpty()) {
-                    Iterator<Particle> it = this.particles.iterator();
-                    while(it.hasNext()) {
-                        Particle p = it.next();
-                        p.update();
+                    Iterator<Particle> particleIterator = this.particles.iterator();
+                    while(particleIterator.hasNext()) {
+                        Particle particle = particleIterator.next();
+                        particle.update();
                         
-                        if(!p.isAlive()) {
-                            it.remove();
+                        if(!particle.isAlive()) {
+                            particleIterator.remove();
                             continue;
                         }
                     }
@@ -109,17 +109,17 @@ public class LaserWire extends Weapon {
                 
                 // Check if there are exactly two terminals. If so, create a laser.
                 if((this.particles.size() == 2) && this.lasers.isEmpty()) {
-                    Point2D.Double p1 = this.particles.get(0).getPos();
-                    Point2D.Double p2 = this.particles.get(1).getPos();
+                    Point2D.Double particleA = this.particles.get(0).getPos();
+                    Point2D.Double particleB = this.particles.get(1).getPos();
                     /* If the distance between the two terminals is too far,
                        refund the player's ammo and delete the two terminals placed. */
-                    double xD = p1.x - p2.x;
-                    double yD = p1.y - p2.y;
-                    if((Math.sqrt((xD * xD) + (yD * yD))) >= LaserWire.MAX_LASER_DIST) {
+                    double particleX = particleA.x - particleB.x;
+                    double particleY = particleA.y - particleB.y;
+                    if((Math.sqrt((particleX * particleX) + (particleY * particleY))) >= LaserWire.MAX_LASER_DIST) {
                         this.particles.clear();
                         this.ammoLeft = LaserWire.DEFAULT_AMMO;
                     } else {
-                        this.lasers.add(new Line2D.Double(p1, p2));
+                        this.lasers.add(new Line2D.Double(particleA, particleB));
                         int newLife = LaserWire.LASER_LIFE / (int)Globals.SLEEP_TIME;
                         this.particles.get(0).setLife(newLife);
                         this.particles.get(1).setLife(newLife);
@@ -136,10 +136,10 @@ public class LaserWire extends Weapon {
         { // Draw particles.
             synchronized(this.particles) {
                 if(!this.particles.isEmpty()) {
-                    Iterator<Particle> it = this.particles.iterator();
-                    while(it.hasNext()) {
-                        Particle p = it.next();
-                        if(p.isAlive()) p.draw(g2d);
+                    Iterator<Particle> particleIterator = this.particles.iterator();
+                    while(particleIterator.hasNext()) {
+                        Particle particle = particleIterator.next();
+                        if(particle.isAlive()) particle.draw(g2d);
                     }
                 }
                 if(this.particles.size() == 1) {
@@ -156,9 +156,9 @@ public class LaserWire extends Weapon {
                 if(!this.lasers.isEmpty()) {
                     g2d.setColor(new Color(191, 74, 99));
                     g2d.setStroke(new BasicStroke(2));
-                    Iterator<Line2D.Double> it = this.lasers.iterator();
-                    while(it.hasNext()) {
-                        Line2D.Double line = it.next();
+                    Iterator<Line2D.Double> laserIterator = this.lasers.iterator();
+                    while(laserIterator.hasNext()) {
+                        Line2D.Double line = laserIterator.next();
                         g2d.draw(line);
                     }
                 }
@@ -170,8 +170,8 @@ public class LaserWire extends Weapon {
     public void fire(double theta, Point2D.Double pos, Player player) {
         synchronized(this.particles) {
             if(this.canFire()) {
-                Particle p = createLaserTerminal(theta, pos);
-                this.particles.add(p);
+                Particle particle = createLaserTerminal(theta, pos);
+                this.particles.add(particle);
                 if(this.particles.size() == 2) this.consumeAmmo();
                 this.resetCooldown();
                 this.fired = true;
@@ -180,7 +180,7 @@ public class LaserWire extends Weapon {
     }
     
     private Particle createLaserTerminal(double theta, Point2D.Double pos) {
-        Particle p = new Particle(theta, 0.0, 0.0, (LaserWire.PARTICLE_LIFE / (int)Globals.SLEEP_TIME),
+        Particle particle = new Particle(theta, 0.0, 0.0, (LaserWire.PARTICLE_LIFE / (int)Globals.SLEEP_TIME),
                                   pos, new Dimension(16, 16), Images.LASER_TERMINAL) {
             @Override
             public void update() {
@@ -194,7 +194,7 @@ public class LaserWire extends Weapon {
                 g2d.drawImage(this.image, (int)x, (int)y, null);
             }
         };
-        return p;
+        return particle;
     }
     
     @Override
@@ -203,9 +203,9 @@ public class LaserWire extends Weapon {
             int damage = 0;
             if(Globals.gameTime.getElapsedMillis() >= (this.lastDamageDone + LaserWire.LASER_COOLDOWN)) {
                 if(!this.lasers.isEmpty()) {
-                    Iterator<Line2D.Double> it = this.lasers.iterator();
-                    while(it.hasNext()) {
-                        Line2D.Double laser = it.next();
+                    Iterator<Line2D.Double> laserIterator = this.lasers.iterator();
+                    while(laserIterator.hasNext()) {
+                        Line2D.Double laser = laserIterator.next();
                         if(rect.intersectsLine(laser)) {
                             damage += LaserWire.DAMAGE_BY_LASER;
                             this.lastDamageDone = Globals.gameTime.getElapsedMillis();

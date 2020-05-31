@@ -20,8 +20,11 @@ import genericzombieshooter.actors.Player;
 import genericzombieshooter.actors.Zombie;
 import genericzombieshooter.misc.Globals;
 import genericzombieshooter.misc.Sounds;
+
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D.Double;
 import java.util.List;
 
 /**
@@ -73,16 +76,28 @@ public class Teleporter extends Weapon {
     }
     
     private Point2D.Double getTeleportLocation(Player player) {
-        Point2D.Double p = new Point2D.Double();
+        Point2D.Double particle = new Point2D.Double();
         boolean validPoint = false;
         while(!validPoint) {
-            p.x = Globals.r.nextDouble() * (Globals.W_WIDTH - player.width);
-            p.y = Globals.r.nextDouble() * (Globals.W_HEIGHT - player.height);
-            double xD = p.x - player.x;
-            double yD = p.y - player.y;
+            particle.x = Globals.r.nextDouble() * (Globals.W_WIDTH - player.width);
+            particle.y = Globals.r.nextDouble() * (Globals.W_HEIGHT - player.height);
+            double xD = particle.x - player.x;
+            double yD = particle.y - player.y;
             double dist = Math.sqrt((xD * xD) + (yD * yD));
             if(dist >= Teleporter.MIN_TELEPORT_DISTANCE) validPoint = true;
         }
-        return p;
+        return particle;
     }
+
+	@Override
+	public void drawAmmo(Graphics2D g2d) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int checkForDamage(Double rect) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

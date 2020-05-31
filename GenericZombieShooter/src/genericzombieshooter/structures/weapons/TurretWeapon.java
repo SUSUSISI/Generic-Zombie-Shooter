@@ -85,12 +85,12 @@ public class TurretWeapon extends Weapon {
     public void updateWeapon(List<Zombie> zombies) {
         synchronized(this.turrets) {
             if(!this.turrets.isEmpty()) {
-                Iterator<Turret> it = this.turrets.iterator();
-                while(it.hasNext()) {
-                    Turret t = it.next();
-                    if(t.isAlive()) t.update(zombies);
+                Iterator<Turret> turretIterator = this.turrets.iterator();
+                while(turretIterator.hasNext()) {
+                    Turret turret = turretIterator.next();
+                    if(turret.isAlive()) turret.update(zombies);
                     else {
-                        it.remove();
+                        turretIterator.remove();
                         continue;
                     }
                 }
@@ -103,10 +103,10 @@ public class TurretWeapon extends Weapon {
     public void drawAmmo(Graphics2D g2d) {
         synchronized(this.turrets) {
             if(!this.turrets.isEmpty()) {
-                Iterator<Turret> it = this.turrets.iterator();
-                while(it.hasNext()) {
-                    Turret t = it.next();
-                    if(t.isAlive()) t.draw(g2d);
+                Iterator<Turret> turretIterator = this.turrets.iterator();
+                while(turretIterator.hasNext()) {
+                    Turret turret = turretIterator.next();
+                    if(turret.isAlive()) turret.draw(g2d);
                 }
             }
         }
@@ -127,10 +127,10 @@ public class TurretWeapon extends Weapon {
         int damage = 0;
         synchronized(this.turrets) {
             if(!this.turrets.isEmpty()) {
-                Iterator<Turret> it = this.turrets.iterator();
-                while(it.hasNext()) {
-                    Turret t = it.next();
-                    if(t.isAlive()) damage += t.checkForDamage(rect);
+                Iterator<Turret> turretIterator = this.turrets.iterator();
+                while(turretIterator.hasNext()) {
+                    Turret tururet = turretIterator.next();
+                    if(tururet.isAlive()) damage += tururet.checkForDamage(rect);
                 }
             }
         }

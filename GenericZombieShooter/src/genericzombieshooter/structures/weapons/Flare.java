@@ -25,6 +25,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -78,12 +79,12 @@ public class Flare extends Weapon {
         { // Update particles.
             synchronized(this.flares) {
                 if(!this.flares.isEmpty()) {
-                    Iterator<Animation> it = this.flares.iterator();
-                    while(it.hasNext()) {
-                        Animation a = it.next();
-                        a.update();
-                        if(!a.isActive()) {
-                            it.remove();
+                    Iterator<Animation> animationIterator = this.flares.iterator();
+                    while(animationIterator.hasNext()) {
+                        Animation animation = animationIterator.next();
+                        animation.update();
+                        if(!animation.isActive()) {
+                            animationIterator.remove();
                             continue;
                         }
                     }
@@ -93,11 +94,11 @@ public class Flare extends Weapon {
         { // Update light sources.
             synchronized(this.lights) {
                 if(!this.lights.isEmpty()) {
-                    Iterator<LightSource> it = this.lights.iterator();
-                    while(it.hasNext()) {
-                        LightSource ls = it.next();
-                        if(!ls.isAlive()) {
-                            it.remove();
+                    Iterator<LightSource> lightSourceIterator = this.lights.iterator();
+                    while(lightSourceIterator.hasNext()) {
+                        LightSource lightSource = lightSourceIterator.next();
+                        if(!lightSource.isAlive()) {
+                            lightSourceIterator.remove();
                             continue;
                         }
                     }
@@ -111,10 +112,10 @@ public class Flare extends Weapon {
     public void drawAmmo(Graphics2D g2d) {
         synchronized(this.flares) {
             if(!this.flares.isEmpty()) {
-                Iterator<Animation> it = this.flares.iterator();
-                while(it.hasNext()) {
-                    Animation a = it.next();
-                    if(a.isActive()) a.draw(g2d);
+                Iterator<Animation> animationIterator = this.flares.iterator();
+                while(animationIterator.hasNext()) {
+                    Animation animation = animationIterator.next();
+                    if(animation.isActive()) animation.draw(g2d);
                 }
             }
         }
@@ -124,22 +125,28 @@ public class Flare extends Weapon {
     public void fire(double theta, Point2D.Double pos, Player player) {
         if(this.canFire()) {
             synchronized(this.flares) {
-                Animation a = new Animation(Images.FLARE_PARTICLE, 32, 32, 3, (int)pos.x, (int)pos.y, 
+                Animation animation = new Animation(Images.FLARE_PARTICLE, 32, 32, 3, (int)pos.x, (int)pos.y, 
                                             10, 0, Flare.PARTICLE_LIFE, true);
-                this.flares.add(a);
+                this.flares.add(animation);
             }
             synchronized(this.lights) {
-                LightSource ls = new LightSource(new Point2D.Double(pos.x, pos.y), Flare.PARTICLE_LIFE, 150.0f,
+                LightSource lightSource = new LightSource(new Point2D.Double(pos.x, pos.y), Flare.PARTICLE_LIFE, 150.0f,
                                                  new float[]{0.0f, 0.6f, 0.8f, 1.0f},
                                                  new Color[]{new Color(0.0f, 0.0f, 0.0f, 0.0f),
                                                              new Color(0.0f, 0.0f, 0.0f, 0.75f),
                                                              new Color(0.0f, 0.0f, 0.0f, 0.9f),
                                                              Color.BLACK});
-                this.lights.add(ls);
+                this.lights.add(lightSource);
             }
             this.consumeAmmo();
             this.resetCooldown();
             this.fired = true;
         }
     }
+
+	@Override
+	public int checkForDamage(Double rect) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
