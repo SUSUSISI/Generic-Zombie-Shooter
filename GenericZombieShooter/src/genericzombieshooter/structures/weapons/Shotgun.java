@@ -71,21 +71,7 @@ public class Shotgun extends Weapon {
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                // Update all particles and remove them if their life has expired or they are out of bounds.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    p.update();
-                    if(!p.isAlive() || p.outOfBounds()) {
-                        it.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
+        this.updateGunParticles();
     }
     
     @Override
@@ -94,10 +80,10 @@ public class Shotgun extends Weapon {
             if(!this.particles.isEmpty()) {
                 // Draw all particles whose life has not yet expired.
                 g2d.setColor(Color.YELLOW);
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    if(p.isAlive()) p.draw(g2d);
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    if(particle.isAlive()) particle.draw(g2d);
                 }
             }
         }
@@ -110,10 +96,10 @@ public class Shotgun extends Weapon {
             if(this.canFire()) {
                 // Create new particles and add them to the list.
                 for(int i = 0; i < Shotgun.PARTICLES_PER_USE; i++) {
-                    Particle p = new Particle(theta, Shotgun.PARTICLE_SPREAD, 6.0,
+                    Particle particle = new Particle(theta, Shotgun.PARTICLE_SPREAD, 6.0,
                                               (Shotgun.PARTICLE_LIFE / (int)Globals.SLEEP_TIME), new Point2D.Double(pos.x, pos.y),
                                                new Dimension(5, 5));
-                    this.particles.add(p);
+                    this.particles.add(particle);
                 }
                 // Use up ammo.
                 if(!player.hasEffect(UnlimitedAmmo.EFFECT_NAME)) this.consumeAmmo();
@@ -130,14 +116,14 @@ public class Shotgun extends Weapon {
             int damage = 0;
             if(!this.particles.isEmpty()) {
                 // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
                     // If the particle is still alive and has collided with the target.
-                    if(p.isAlive() && p.checkCollision(rect)) {
+                    if(particle.isAlive() && particle.checkCollision(rect)) {
                         // Add the damage of the particle and remove it from the list.
                         damage += Shotgun.DAMAGE_PER_PARTICLE;
-                        it.remove();
+                        particleIterator.remove();
                     }
                 }
             }
