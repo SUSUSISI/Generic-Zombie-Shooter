@@ -70,21 +70,7 @@ public class Handgun extends Weapon{
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        // Update all particles and remove them if their life has expired or they are out of bounds.
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    p.update();
-                    if(!p.isAlive() || p.outOfBounds()) {
-                        it.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
+        this.updateGunParticles();
     }
     
     @Override
@@ -93,10 +79,10 @@ public class Handgun extends Weapon{
         synchronized(this.particles) {
             if(!this.particles.isEmpty()) {
                 g2d.setColor(Color.ORANGE);
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    if(p.isAlive()) p.draw(g2d);
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    if(particle.isAlive()) particle.draw(g2d);
                 }
             }
         }
@@ -109,10 +95,10 @@ public class Handgun extends Weapon{
             // Create a new bullet and add it to the list.
             int width = 4;
             int height = 10;
-            Particle p = new Particle(theta, Handgun.PARTICLE_SPREAD, 8.0,
+            Particle particle = new Particle(theta, Handgun.PARTICLE_SPREAD, 8.0,
                           (Handgun.PARTICLE_LIFE / (int)Globals.SLEEP_TIME), new Point2D.Double(pos.x, pos.y),
                            new Dimension(width, height), Images.POPGUN_BULLET);
-            this.particles.add(p);
+            this.particles.add(particle);
             // Use up ammo.
             this.consumeAmmo();
             this.resetCooldown();
@@ -127,14 +113,14 @@ public class Handgun extends Weapon{
             int damage = 0;
             if(!this.particles.isEmpty()) {
                 // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
                     // If the particle is still alive and has collided with the target.
-                    if(p.isAlive() && p.checkCollision(rect)) {
+                    if(particle.isAlive() && particle.checkCollision(rect)) {
                         // Add the damage of the particle and remove it from the list.
                         damage += Handgun.DAMAGE_PER_PARTICLE;
-                        it.remove();
+                        particleIterator.remove();
                     }
                 }
             }

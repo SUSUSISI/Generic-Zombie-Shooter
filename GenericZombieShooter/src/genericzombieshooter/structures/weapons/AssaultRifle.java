@@ -72,21 +72,7 @@ public class AssaultRifle extends Weapon {
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                // Update all particles and remove them if their life has expired or they are out of bounds.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    p.update();
-                    if(!p.isAlive() || p.outOfBounds()) {
-                        it.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
+        this.updateGunParticles();
     }
     
     @Override
@@ -95,10 +81,10 @@ public class AssaultRifle extends Weapon {
             // Draw all particles whose life has not yet expired.
             if(!this.particles.isEmpty()) {
                 g2d.setColor(Color.ORANGE);
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    if(p.isAlive()) p.draw(g2d);
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    if(particle.isAlive()) particle.draw(g2d);
                 }
             }
         }
@@ -111,10 +97,10 @@ public class AssaultRifle extends Weapon {
             // Create a new bullet and add it to the list.
             int width = 4;
             int height = 10;
-            Particle p = new Particle(theta, AssaultRifle.PARTICLE_SPREAD, 8.0,
+            Particle particle = new Particle(theta, AssaultRifle.PARTICLE_SPREAD, 8.0,
                           (AssaultRifle.PARTICLE_LIFE / (int)Globals.SLEEP_TIME), new Point2D.Double(pos.x, pos.y),
                            new Dimension(width, height), Images.RTPS_BULLET);
-            this.particles.add(p);
+            this.particles.add(particle);
             // Use up ammo.
             if(!player.hasEffect(UnlimitedAmmo.EFFECT_NAME)) this.consumeAmmo();
             this.resetCooldown();
@@ -128,14 +114,14 @@ public class AssaultRifle extends Weapon {
             int damage = 0;
             if(!this.particles.isEmpty()) {
                 // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
                     // If the particle is still alive and has collided with the target.
-                    if(p.isAlive() && p.checkCollision(rect)) {
+                    if(particle.isAlive() && particle.checkCollision(rect)) {
                         // Add the damage of the particle and remove it from the list.
                         damage += AssaultRifle.DAMAGE_PER_PARTICLE;
-                        it.remove();
+                        particleIterator.remove();
                     }
                 }
             }
