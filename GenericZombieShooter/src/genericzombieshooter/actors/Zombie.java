@@ -42,7 +42,7 @@ public class Zombie extends Point2D.Double {
     private double speed; // How fast the zombie moves.
     private int cashValue; // How many points the zombie is worth.
     private int experience; // How many experience points the zombie is worth.
-    
+
     protected long nextMoan;
     protected boolean moaned;
     
@@ -66,6 +66,7 @@ public class Zombie extends Point2D.Double {
     public void set(int id, long value) {
         // To be overridden.
     }
+
     public int getType() { return this.type; }
     public double getHealth() { return this.health; }
     public void takeDamage(int damage_) { this.health -= damage_; }
@@ -117,22 +118,6 @@ public class Zombie extends Point2D.Double {
     
     public void moan(Player player) {
         // To be overridden.
-        if(!this.moaned) {
-            boolean regular = this.type == Globals.ZOMBIE_REGULAR_TYPE;
-            boolean dog = this.type == Globals.ZOMBIE_DOG_TYPE;
-            boolean tiny = this.type == Globals.ZOMBIE_TINY_TYPE;
-            if(regular || dog || tiny) {
-                if(Globals.gameTime.getElapsedMillis() >= this.nextMoan) {
-                    double xD = player.getCenterX() - this.x;
-                    double yD = player.getCenterY() - this.y;
-                    double dist = Math.sqrt((xD * xD) + (yD * yD));
-                    double gain = 1.0 - (dist / Player.AUDIO_RANGE);
-                    if(regular || tiny) Sounds.MOAN1.play(gain);
-                    else if(dog) Sounds.MOAN2.play(gain);
-                    this.moaned = true;
-                }
-            }
-        }
     }
     
     public List<Particle> getParticles() {
