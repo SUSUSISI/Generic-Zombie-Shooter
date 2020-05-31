@@ -78,12 +78,12 @@ public class Flamethrower extends Weapon {
         // Update all particles and remove them if their life has expired or they are out of bounds.
         synchronized(this.particles) {
             if(!this.particles.isEmpty()) {
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    p.update();
-                    if(!p.isAlive() || p.outOfBounds()) {
-                        it.remove();
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    particle.update();
+                    if(!particle.isAlive() || particle.outOfBounds()) {
+                        particleIterator.remove();
                         continue;
                     }
                 }
@@ -98,10 +98,10 @@ public class Flamethrower extends Weapon {
         synchronized(this.particles) {
             if(!this.particles.isEmpty()) {
                 g2d.setColor(Color.ORANGE);
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    if(p.isAlive()) p.draw(g2d);
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    if(particle.isAlive()) particle.draw(g2d);
                 }
             }
         }
@@ -116,7 +116,7 @@ public class Flamethrower extends Weapon {
                 for(int i = 0; i < Flamethrower.PARTICLES_PER_USE; i++) {
                     int life = Flamethrower.PARTICLE_LIFE_MIN + (int)(Globals.r.nextInt((Flamethrower.PARTICLE_LIFE_MAX - Flamethrower.PARTICLE_LIFE_MIN) + 1));
                     int size = Globals.r.nextInt(8) + 1;
-                    Particle p = new Particle(theta, Flamethrower.PARTICLE_SPREAD, 4.0,
+                    Particle particle = new Particle(theta, Flamethrower.PARTICLE_SPREAD, 4.0,
                                           (life / (int)Globals.SLEEP_TIME), new Point2D.Double(pos.x, pos.y),
                                            new Dimension(size, size), Images.FIRE_PARTICLE) {
                         @Override
@@ -128,9 +128,9 @@ public class Flamethrower extends Weapon {
                                 double y = this.pos.y - (this.size.height / 2);
                                 g2d.setTransform(at);
                                 if(this.image == null) {
-                                    double w = this.size.width;
-                                    double h = this.size.height;
-                                    Rectangle2D.Double rect = new Rectangle2D.Double(x, y, w, h);
+                                    double width = this.size.width;
+                                    double height = this.size.height;
+                                    Rectangle2D.Double rect = new Rectangle2D.Double(x, y, width, height);
                                     g2d.fill(at.createTransformedShape(rect));
                                 } else {
                                     g2d.drawImage(this.image, (int)x, (int)y, null);
@@ -139,7 +139,7 @@ public class Flamethrower extends Weapon {
                             } catch(NoninvertibleTransformException nte) {}
                         }
                     };
-                    this.particles.add(p);
+                    this.particles.add(particle);
                 }
                 // Use up ammo.
                 if(!player.hasEffect(UnlimitedAmmo.EFFECT_NAME)) this.consumeAmmo();
@@ -155,14 +155,14 @@ public class Flamethrower extends Weapon {
             int damage = 0;
             if(!this.particles.isEmpty()) {
                 // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
                     // If the particle is still alive and has collided with the target.
-                    if(p.isAlive() && p.checkCollision(rect)) {
+                    if(particle.isAlive() && particle.checkCollision(rect)) {
                         // Add the damage of the particle and remove it from the list.
                         damage += Flamethrower.DAMAGE_PER_PARTICLE;
-                        it.remove();
+                        particleIterator.remove();
                     }
                 }
             }
