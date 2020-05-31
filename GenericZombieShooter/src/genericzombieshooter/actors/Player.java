@@ -174,46 +174,53 @@ public class Player extends Rectangle2D.Double {
         if(this.lives > 0) reset();
     }
     public int spendPoint(int id, int currentLevel) {
-        if(id == Player.MAX_HEALTH_ID) {
-            // Determine if player has enough points to buy the next upgrade.;
-            if(this.skillPoints >= (currentLevel + 1)) {
-                // Determine if the player has already maxed out this skill.
-                if(currentLevel < 5) {
-                    // Deduct the appropriate number of skill points and raise the skill to the next level.
-                    this.skillPoints -= (currentLevel + 1);
-                    this.maxHealth += Player.MAX_HEALTH_INC;
-                    this.addHealth(Player.MAX_HEALTH_INC);
-                    synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Max Health increased!", 5000)); }
-                    return 1;
+        final boolean hasEnoughPoints = this.skillPoints >= (currentLevel + 1);
+        final boolean notMaxLevel = currentLevel < 5;
+
+    	if(id == Player.MAX_HEALTH_ID) {
+        	if(hasEnoughPoints) {
+        		if(notMaxLevel) {
+                    return healthLevelUp(currentLevel);
                 }
             }
         } else if(id == Player.DAMAGE_ID) {
-            // Determine if player has enough points to buy the next upgrade.
-            if(this.skillPoints >= (currentLevel + 1)) {
-                // Determine if the player has already maxed out this skill.
-                if(currentLevel < 5) {
-                    // Deduct the appropriate number of skill points and raise the skill to the next level.
-                    this.skillPoints -= (currentLevel + 1);
-                    this.damageBonus += Player.DAMAGE_INC;
-                    synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Damage increased!", 5000)); }
-                    return 1;
+            if(hasEnoughPoints) {
+                if(notMaxLevel) {
+                    return damageLevelUp(currentLevel);
                 }
             }
         } else if(id == Player.SPEED_ID) {
-            // Determine if player has enough points to buy the next upgrade.
-            if(this.skillPoints >= (currentLevel + 1)) {
-                // Determine if the player has already maxed out this skill.
-                if(currentLevel < 5) {
-                    // Deduct the appropriate number of skill points and raise the skill to the next level.
-                    this.skillPoints -= (currentLevel + 1);
-                    this.speedBonus += Player.SPEED_INC;
-                    synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Speed increased!", 5000)); }
-                    return 1;
+            if(hasEnoughPoints) {
+                if(notMaxLevel) {
+                    return speedLevelUp(currentLevel);
                 }
             }
         }
         return 0;
     }
+
+	protected int speedLevelUp(int currentLevel) {
+		this.skillPoints -= (currentLevel + 1);
+		this.speedBonus += Player.SPEED_INC;
+		synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Speed increased!", 5000)); }
+		return 1;
+	}
+
+	protected int damageLevelUp(int currentLevel) {
+		this.skillPoints -= (currentLevel + 1);
+		this.damageBonus += Player.DAMAGE_INC;
+		synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Damage increased!", 5000)); }
+		return 1;
+	}
+
+	protected int healthLevelUp(int currentLevel) {
+		this.skillPoints -= (currentLevel + 1);
+		this.maxHealth += Player.MAX_HEALTH_INC;
+		this.addHealth(Player.MAX_HEALTH_INC);
+		synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Max Health increased!", 5000)); }
+		return 1;
+	}
+	
     public void reset() {
         this.statusEffects.clear();
         
@@ -283,8 +290,8 @@ public class Player extends Rectangle2D.Double {
             if(Globals.keys[i]) this.move(i);
         }
         
-        // If the left mouse button is held down, create a new projectile.
-        if(Globals.buttons[0]) {
+        final boolean leftMousePush = Globals.buttons[0];
+        if(leftMousePush) {
             Point target = new Point(Globals.mousePos);
             Point2D.Double pos = new Point2D.Double((this.x + 28), (this.y + 2));
             AffineTransform.getRotateInstance(this.theta, this.getCenterX(), this.getCenterY()).transform(pos, pos);
