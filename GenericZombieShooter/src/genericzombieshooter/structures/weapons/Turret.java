@@ -88,12 +88,12 @@ public class Turret extends Point2D.Double {
             { // Update particles.
                 synchronized(this.particles) {
                     if(!this.particles.isEmpty()) {
-                        Iterator<Particle> it = this.particles.iterator();
-                        while(it.hasNext()) {
-                            Particle p = it.next();
-                            p.update();
-                            if(!p.isAlive() || p.outOfBounds()) {
-                                it.remove();
+                        Iterator<Particle> particleIterator = this.particles.iterator();
+                        while(particleIterator.hasNext()) {
+                            Particle particle = particleIterator.next();
+                            particle.update();
+                            if(!particle.isAlive() || particle.outOfBounds()) {
+                                particleIterator.remove();
                                 continue;
                             }
                         }
@@ -102,24 +102,24 @@ public class Turret extends Point2D.Double {
             } // End particle updates.
             { // Update zombie target.
                 if(!targets.isEmpty()) {
-                    double xD = 1000;
-                    double yD = 1000;
-                    double dist = Math.sqrt((xD * xD) + (yD * yD));
+                    double zombieX = 1000;
+                    double zombieY = 1000;
+                    double dist = Math.sqrt((zombieX * zombieX) + (zombieY * zombieY));
                     if(this.target != null) {
-                        xD = this.target.x - this.x;
-                        yD = this.target.y - this.y;
-                        dist = Math.sqrt((xD * xD) + (yD * yD));
+                        zombieX = this.target.x - this.x;
+                        zombieY = this.target.y - this.y;
+                        dist = Math.sqrt((zombieX * zombieX) + (zombieY * zombieY));
                     }
                     synchronized(targets) {
-                        Iterator<Zombie> it = targets.iterator();
-                        while(it.hasNext()) {
-                            Zombie z = it.next();
-                            double xD2 = z.x - this.x;
-                            double yD2 = z.y - this.y;
-                            double dist2 = Math.sqrt((xD2 * xD2) + (yD2 * yD2));
-                            if((!z.isDead() && (dist2 < dist)) && (dist2 <= Turret.ATTACK_RADIUS)) {
+                        Iterator<Zombie> zombieIterator = targets.iterator();
+                        while(zombieIterator.hasNext()) {
+                            Zombie zombie = zombieIterator.next();
+                            double zombie_X = zombie.x - this.x;
+                            double zombie_Y = zombie.y - this.y;
+                            double dist2 = Math.sqrt((zombie_X * zombie_X) + (zombie_Y * zombie_Y));
+                            if((!zombie.isDead() && (dist2 < dist)) && (dist2 <= Turret.ATTACK_RADIUS)) {
                                 // Switch targets.
-                                this.target = z;
+                                this.target = zombie;
                             }
                         }
                     }
@@ -155,10 +155,10 @@ public class Turret extends Point2D.Double {
         { // Draw particles.
             synchronized(this.particles) {
                 if(!this.particles.isEmpty()) {
-                    Iterator<Particle> it = this.particles.iterator();
-                    while(it.hasNext()) {
-                        Particle p = it.next();
-                        if(p.isAlive()) p.draw(g2d);
+                    Iterator<Particle> particleIterator = this.particles.iterator();
+                    while(particleIterator.hasNext()) {
+                        Particle particle = particleIterator.next();
+                        if(particle.isAlive()) particle.draw(g2d);
                     }
                 }
             }
@@ -191,10 +191,10 @@ public class Turret extends Point2D.Double {
         if(this.canFire()) {
             Point2D.Double firingPos = new Point2D.Double(this.x, (this.y - 25));
             AffineTransform.getRotateInstance(this.theta, this.x, this.y).transform(firingPos, firingPos);
-            Particle p = new Particle((-this.theta + Math.PI), Turret.PARTICLE_SPREAD, 10.0,
+            Particle particle = new Particle((-this.theta + Math.PI), Turret.PARTICLE_SPREAD, 10.0,
                                       (int)(Turret.PARTICLE_LIFE / Globals.SLEEP_TIME), firingPos,
                                       new Dimension(4, 10), Images.RTPS_BULLET);
-            this.particles.add(p);
+            this.particles.add(particle);
             this.lastFired = Globals.gameTime.getElapsedMillis();
             Sounds.RTPS.play();
         }
@@ -204,12 +204,12 @@ public class Turret extends Point2D.Double {
         int damage = 0;
         synchronized(this.particles) {
             if(!this.particles.isEmpty()) {
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    if(p.isAlive() && p.checkCollision(rect)) {
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    if(particle.isAlive() && particle.checkCollision(rect)) {
                         damage += Turret.DAMAGE;
-                        it.remove();
+                        particleIterator.remove();
                     }
                 }
             }
