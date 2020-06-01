@@ -211,9 +211,9 @@ public class ZombieWave {
                 if(!z.isDead()) {
                     // Check for collisions with ammo, etc.
                     //Iterator<Weapon> wit = player.getAllWeapons().iterator();
-                    Iterator<Weapon> it = player.getWeaponsMap().values().iterator();
-                    while(it.hasNext()) {
-                        Weapon w = it.next();
+                    Iterator<Weapon> wit = player.getWeaponsMap().values().iterator();
+                    while(wit.hasNext()) {
+                        Weapon w = wit.next();
                         int damage = w.checkForDamage(z.getRect());
                         if(player.getDamageBonus() > 0) damage += (damage * player.getDamageBonus());
                         if(damage > 0) {
