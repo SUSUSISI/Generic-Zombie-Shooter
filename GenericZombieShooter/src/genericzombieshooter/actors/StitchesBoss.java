@@ -167,20 +167,11 @@ public class StitchesBoss extends Zombie {
         g2d.setTransform(saved);
     }
     
-    @Override
-    public void moan(Player player) {
-        if(!this.moaned) {
-            if(Globals.gameTime.getElapsedMillis() >= this.nextMoan) {
-                double xD = player.getCenterX() - this.x;
-                double yD = player.getCenterY() - this.y;
-                double dist = Math.sqrt((xD * xD) + (yD * yD));
-                double gain = 1.0 - (dist / Player.AUDIO_RANGE);
-                Sounds.MOAN6.play(gain);
-                this.moaned = true;
-            }
-        }
-    }
-    
+	@Override
+	protected void soundMoan(double gain) {
+        Sounds.MOAN6.play(gain);
+		
+	}
     private void throwHook(Point2D.Double playerPos) {
         double theta = Math.atan2((playerPos.y - this.y), (playerPos.x - this.x)) - Math.PI;
         
