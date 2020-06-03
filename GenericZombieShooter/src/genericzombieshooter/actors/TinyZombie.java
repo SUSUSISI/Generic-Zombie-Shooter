@@ -10,7 +10,7 @@ import java.awt.geom.Point2D;
 
 public class TinyZombie extends Zombie{
 
-	public TinyZombie(Point2D.Double p_, int type_, int health_, int damage_, double speed_, int cash_, int exp_,
+	public TinyZombie(Point2D.Double p_, int health_, int damage_, double speed_, int cash_, int exp_,
 			Animation animation_) {
 		super(p_, Globals.ZOMBIE_TINY_TYPE, health_, damage_, speed_, cash_, exp_, animation_);
 		
