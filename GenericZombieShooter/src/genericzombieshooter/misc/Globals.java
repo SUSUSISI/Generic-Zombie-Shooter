@@ -79,7 +79,10 @@ public class Globals {
     public static boolean levelScreenOpen;
     public static boolean deathScreen;
     public static boolean waveInProgress; // Whether the player is fighting or waiting for another wave.
+    
+    
     public static long nextWave;
+    public static Progress progress;
     
     public static void resetState() {
     	gameTime.reset();
