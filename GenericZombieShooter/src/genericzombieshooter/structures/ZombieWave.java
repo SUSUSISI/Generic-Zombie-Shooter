@@ -2,8 +2,10 @@ package genericzombieshooter.structures;
 
 import genericzombieshooter.actors.AberrationBoss;
 import genericzombieshooter.actors.AcidZombie;
+import genericzombieshooter.actors.DogZombie;
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.actors.PoisonFogZombie;
+import genericzombieshooter.actors.RegularZombie;
 import genericzombieshooter.actors.StitchesBoss;
 import genericzombieshooter.actors.ZombatBoss;
 import genericzombieshooter.actors.Zombie;
@@ -88,12 +90,12 @@ public class ZombieWave {
                 if(zombieType == Globals.ZOMBIE_REGULAR_TYPE) {
                     // Zumby
                     Animation a_ = new Animation(Images.ZOMBIE_REGULAR, 48, 48, 4, (int)p_.x, (int)p_.y, 200, 0, true);
-                    Zombie z_ = new Zombie(p_, Globals.ZOMBIE_REGULAR_TYPE, 250, 1, 1, 25, 20, a_);
+                    Zombie z_ = new RegularZombie(p_, 250, 1, 1, 25, 20, a_);
                     wave.add(z_);
                 } else if(zombieType == Globals.ZOMBIE_DOG_TYPE) {
                     // Rotdog
                     Animation a_ = new Animation(Images.ZOMBIE_DOG, 48, 48, 4, (int)p_.x, (int)p_.y, 80, 0, true);
-                    Zombie z_ = new Zombie(p_, Globals.ZOMBIE_DOG_TYPE, 100, 1, 2, 50, 30, a_);
+                    Zombie z_ = new DogZombie(p_, 100, 1, 2, 50, 30, a_);
                     wave.add(z_);
                 } else if(zombieType == Globals.ZOMBIE_ACID_TYPE) {
                     // Upchuck
