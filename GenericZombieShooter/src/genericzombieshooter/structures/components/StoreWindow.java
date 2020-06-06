@@ -21,7 +21,8 @@ import genericzombieshooter.actors.Player;
 import genericzombieshooter.misc.Globals;
 import genericzombieshooter.misc.Images;
 import genericzombieshooter.misc.Sounds;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -84,7 +85,7 @@ public class StoreWindow {
         } // End adding weapons to icons map.
     }
     
-    private void createWeaponFrame(Weapon w, Rectangle2D.Double rect) {
+    private void createWeaponFrame(WeaponStrategy w, Rectangle2D.Double rect) {
         Rectangle2D.Double purchase = new Rectangle2D.Double((rect.x + 10), 
                         ((rect.y + rect.height) - (StoreWindow.ITEM_BUTTON_HEIGHT + 10)), 
                         StoreWindow.ITEM_BUTTON_WIDTH, StoreWindow.ITEM_BUTTON_HEIGHT);
@@ -110,7 +111,7 @@ public class StoreWindow {
         this.drawWeaponFrame(g2d, player, Globals.TELEPORTER, Globals.TELEPORTER.getImage());
     }
     
-    private void drawWeaponFrame(Graphics2D g2d, Player player, Weapon w, BufferedImage brbt) {
+    private void drawWeaponFrame(Graphics2D g2d, Player player, WeaponStrategy w, BufferedImage brbt) {
         FontMetrics metrics = g2d.getFontMetrics();
         
         int x = (int)(this.weaponFrames.get(w.getName()).get(0).x + 18);
@@ -159,7 +160,7 @@ public class StoreWindow {
                 // Check if player already has the weapon.
                 if(!player.hasWeapon(pair.getKey())) {
                     // If not, check if the player has enough cash to buy it.
-                    Weapon w = Globals.getWeaponByName(pair.getKey());
+                    WeaponStrategy w = Globals.getWeaponByName(pair.getKey());
                     if(w != null) {
                         if(player.getCash() >= w.getWeaponPrice()) {
                             /* Deduct the cash amount from the player's total
@@ -175,7 +176,7 @@ public class StoreWindow {
                 // Check if player has enough money to purchase the weapon's ammo.
                 if(player.hasWeapon(pair.getKey())) {
                     // If so, check if the player has enough money to buy the ammo.
-                    Weapon w = Globals.getWeaponByName(pair.getKey());
+                    WeaponStrategy w = Globals.getWeaponByName(pair.getKey());
                     if(w != null) {
                         // If the selected weapon's ammo stock is not already full...
                         if(!w.ammoFull()) {

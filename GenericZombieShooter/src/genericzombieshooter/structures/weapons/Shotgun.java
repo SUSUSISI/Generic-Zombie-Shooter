@@ -16,18 +16,22 @@
  **/
 package genericzombieshooter.structures.weapons;
 
+import genericzombieshooter.GZSFramework;
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.actors.Zombie;
 import genericzombieshooter.misc.Globals;
 import genericzombieshooter.misc.Sounds;
+import genericzombieshooter.structures.LightSource;
 import genericzombieshooter.structures.Particle;
 import genericzombieshooter.structures.items.UnlimitedAmmo;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,21 +39,45 @@ import java.util.List;
  * Used to represent the Shotgun weapon.
  * @author Darin Beaudreau
  */
-public class Shotgun extends Weapon {
+public class Shotgun implements WeaponStrategy {
     // Final Variables
     private static final int WEAPON_PRICE = 1200;
     private static final int AMMO_PRICE = 200;
     private static final int DEFAULT_AMMO = 24;
-    private static final int MAX_AMMO = 64;
-    private static final int AMMO_PER_USE = 1;
-    private static final int PARTICLES_PER_USE = 8;
+    static final int PARTICLES_PER_USE = 8;
     private static final int DAMAGE_PER_PARTICLE = 50;
     private static final double PARTICLE_SPREAD = 20.0;
     private static final int PARTICLE_LIFE = 1000;
     
-    public Shotgun() {
-        super("Boomstick", KeyEvent.VK_3, "/resources/images/GZS_Boomstick.png", 
-              Shotgun.DEFAULT_AMMO, Shotgun.MAX_AMMO, Shotgun.AMMO_PER_USE, 40, false);
+    private String name;
+    private int key;
+    private BufferedImage image;
+    protected int ammoLeft;
+    private int maxAmmo;
+    private int ammoPerUse;
+    private boolean automatic; // Indicates if the weapon can be fired continuously.
+    protected boolean fired; // Used with automatic to determine if the weapon needs to be fired again.
+    private int cooldown;
+    private int coolPeriod;
+    protected List<Particle> particles;
+    
+    public Shotgun(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
+    	this.name = name;
+        this.key = key;
+        
+        this.image = GZSFramework.loadImage(filename);
+        
+        this.ammoLeft = ammoLeft;
+        this.maxAmmo = maxAmmo;
+        this.ammoPerUse = ammoPerUse;
+        
+        this.automatic = automatic;
+        this.fired = false;
+        this.cooldown = cooldown;
+        this.coolPeriod = cooldown;
+        
+        this.particles = Collections.synchronizedList(new ArrayList<Particle>());
+
     }
     
     @Override
@@ -65,13 +93,26 @@ public class Shotgun extends Weapon {
     
     @Override
     public void resetAmmo() {
-        super.resetAmmo();
+    	synchronized(this.particles) { this.particles.clear(); }
         this.ammoLeft = Shotgun.DEFAULT_AMMO;
     }
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        this.updateGunParticles();
+    	synchronized(this.particles) {
+            if(!this.particles.isEmpty()) {
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    particle.update();
+                    if(!particle.isAlive() || particle.outOfBounds()) {
+                        particleIterator.remove();
+                        continue;
+                    }
+                }
+            }
+        }
+        this.cool();
     }
     
     @Override
@@ -130,4 +171,93 @@ public class Shotgun extends Weapon {
             return damage;
         }
     }
+
+    @Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public int getKey() {
+		return this.key;
+	}
+
+	@Override
+	public BufferedImage getImage() {
+		return this.image;
+	}
+
+	@Override
+	public int getAmmoLeft() {
+		return this.ammoLeft;
+	}
+
+	@Override
+	public int getMaxAmmo() {
+		return this.maxAmmo;
+	}
+
+	@Override
+	public boolean isAutomatic() {
+		return this.automatic;
+	}
+
+	@Override
+	public boolean hasFired() {
+		return this.fired;
+	}
+
+	@Override
+	public void resetFire() {
+		this.fired = false;
+	}
+
+	@Override
+	public double getCooldownPercentage() {
+		return ((double)cooldown / (double)coolPeriod);
+	}
+
+	@Override
+	public void resetCooldown() {
+		this.cooldown = this.coolPeriod;		
+	}
+
+	@Override
+	public void cool() {
+		if(this.cooldown > 0) this.cooldown--;
+	}
+
+	@Override
+	public boolean canFire() {
+		boolean isAmmoLeft = (this.ammoLeft >= this.ammoPerUse);
+        boolean isCoolDown = (this.cooldown != 0);
+        boolean canFire = this.automatic || (!this.automatic && !this.fired);
+        return (isAmmoLeft) && (!isCoolDown) && (canFire); 
+	}
+
+	@Override
+	public boolean ammoFull() {
+		return this.ammoLeft == this.maxAmmo;
+	}
+
+	@Override
+	public void addAmmo(int amount) {
+		if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
+        else this.ammoLeft += amount;
+	}
+
+	@Override
+	public void consumeAmmo() {
+		this.ammoLeft -= this.ammoPerUse;
+	}
+
+	@Override
+	public List<Particle> getParticles() {
+		return this.particles;
+	}
+
+	@Override
+	public List<LightSource> getLights() {
+		return null;
+	}
 }

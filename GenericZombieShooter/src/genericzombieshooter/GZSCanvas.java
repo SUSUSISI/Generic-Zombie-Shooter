@@ -26,7 +26,8 @@ import genericzombieshooter.structures.components.LevelScreen;
 import genericzombieshooter.structures.components.StoreWindow;
 import genericzombieshooter.structures.components.WeaponsLoadout;
 import genericzombieshooter.structures.items.NightVision;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -93,9 +94,9 @@ public class GZSCanvas extends JPanel {
 
                     { // Begin drawing player and ammo.
                         Stroke oldStroke = g2d.getStroke();
-                        Iterator<Weapon> it = player.getWeaponsMap().values().iterator();
+                        Iterator<WeaponStrategy> it = player.getWeaponsMap().values().iterator();
                         while(it.hasNext()) {
-                            Weapon w = it.next();
+                        	WeaponStrategy w = it.next();
                             w.drawAmmo((Graphics2D)g2d);
                         }
                         player.draw(g2d);

@@ -18,7 +18,8 @@ import genericzombieshooter.structures.items.Invulnerability;
 import genericzombieshooter.structures.items.NightVision;
 import genericzombieshooter.structures.items.SpeedUp;
 import genericzombieshooter.structures.items.UnlimitedAmmo;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -213,9 +214,9 @@ public class ZombieWave {
                 if(!z.isDead()) {
                     // Check for collisions with ammo, etc.
                     //Iterator<Weapon> wit = player.getAllWeapons().iterator();
-                    Iterator<Weapon> wit = player.getWeaponsMap().values().iterator();
+                    Iterator<WeaponStrategy> wit = player.getWeaponsMap().values().iterator();
                     while(wit.hasNext()) {
-                        Weapon w = wit.next();
+                        WeaponStrategy w = wit.next();
                         int damage = w.checkForDamage(z.getRect());
                         if(player.getDamageBonus() > 0) damage += (damage * player.getDamageBonus());
                         if(damage > 0) {

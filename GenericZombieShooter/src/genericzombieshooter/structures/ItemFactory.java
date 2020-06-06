@@ -21,7 +21,8 @@ import genericzombieshooter.misc.Globals;
 import genericzombieshooter.structures.components.WeaponsLoadout;
 import genericzombieshooter.structures.items.Ammo;
 import genericzombieshooter.structures.items.HealthPack;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -83,9 +84,9 @@ public class ItemFactory {
         if(currentTime >= this.nextAmmo) {
             // Drop Ammo Crate
             boolean nonFullWeaponDetected = false;
-            Iterator<Weapon> it = player.getWeaponsMap().values().iterator();
+            Iterator<WeaponStrategy> it = player.getWeaponsMap().values().iterator();
             while(it.hasNext()) {
-                Weapon w = it.next();
+                WeaponStrategy w = it.next();
                 if(!w.ammoFull()) nonFullWeaponDetected = true;
             }
             if(nonFullWeaponDetected) {
