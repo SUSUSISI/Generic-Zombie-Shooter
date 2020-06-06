@@ -1,4 +1,4 @@
-package genericzombieshooter.misc;
+package genericzombieshooter.misc.progress;
 import java.util.ArrayList;
 import java.util.List;
 
