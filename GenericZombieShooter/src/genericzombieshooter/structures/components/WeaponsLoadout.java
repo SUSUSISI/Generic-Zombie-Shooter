@@ -1,16 +1,13 @@
 /**
     This file is part of Generic Zombie Shooter.
-
     Generic Zombie Shooter is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     Generic Zombie Shooter is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with Generic Zombie Shooter.  If not, see <http://www.gnu.org/licenses/>.
  **/
@@ -25,7 +22,6 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
 
 /**
  * Used to draw the weapons loadout GUI component to the screen.

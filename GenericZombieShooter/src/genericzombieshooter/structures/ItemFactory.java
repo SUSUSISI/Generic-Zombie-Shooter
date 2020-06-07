@@ -22,6 +22,7 @@ import genericzombieshooter.structures.components.WeaponsLoadout;
 import genericzombieshooter.structures.items.Ammo;
 import genericzombieshooter.structures.items.HealthPack;
 import genericzombieshooter.structures.weapons.Weapon;
+
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;

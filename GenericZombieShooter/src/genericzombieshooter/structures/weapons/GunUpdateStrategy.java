@@ -1,10 +1,8 @@
 package genericzombieshooter.structures.weapons;
 
-import java.awt.Color;
 import java.util.Iterator;
 import java.util.List;
 
-import genericzombieshooter.actors.Zombie;
 import genericzombieshooter.structures.Particle;
 
 public class GunUpdateStrategy implements UpdateStrategy {

@@ -17,9 +17,11 @@
 package genericzombieshooter;
 
 import genericzombieshooter.actors.Player;
+import genericzombieshooter.listeners.CanvasListener;
 import genericzombieshooter.misc.Globals;
 import genericzombieshooter.misc.Images;
 import genericzombieshooter.misc.Sounds;
+import genericzombieshooter.misc.progress.*;
 import genericzombieshooter.structures.GameTime;
 import genericzombieshooter.structures.ItemFactory;
 import genericzombieshooter.structures.Message;
@@ -30,6 +32,7 @@ import genericzombieshooter.structures.components.StoreWindow;
 import genericzombieshooter.structures.components.WeaponsLoadout;
 import genericzombieshooter.structures.items.NightVision;
 import genericzombieshooter.structures.weapons.Weapon;
+
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
@@ -56,6 +59,7 @@ public class GZSFramework {
     public GZSCanvas canvas;
     private StoreWindow store;
     private LevelScreen levelScreen;
+    private CanvasListenerManager canvasListenerManager;
     
     // Game objects.
     private Player player; // The player character.
@@ -101,6 +105,7 @@ public class GZSFramework {
         itemFactory = new ItemFactory();
         
         
+        
         resetGame();
         initializeListeners();
         Sounds.init();
@@ -113,34 +118,34 @@ public class GZSFramework {
        
     public void update() {
         // Update the game time.
-        if(Globals.started && !Globals.crashed && !Globals.deathScreen) {
-            if(Globals.paused) Globals.gameTime.increaseOffset();
-            else{
-            	Globals.gameTime.update();
-                try {
-                    player.update();
-                    itemFactory.update(player);
+    	if(Globals.progress.isPaused()) 
+    		Globals.gameTime.increaseOffset();
+    	else if(Globals.progress.compareWith(Screen.field)) {
+        	Globals.gameTime.update();
+            try {
+                player.update();
+                itemFactory.update(player);
 
-                    waveUpdate();
-                    checkPlayerLife();
-                    weaponUpdate();
-                    checkMessage();
+                waveUpdate();
+                checkPlayerLife();
+                weaponUpdate();
+                checkMessage();
 
-                } catch(Exception e) {
-                    createErrorWindow(e);
-                }
+            } catch(Exception e) {
+                createErrorWindow(e);
             }
-            
-        }
-        
-        
+        }        
     }
     
     private void createWave() {
         try {
+    		System.out.println(Globals.progress.getStatus());
+    		System.out.println(Globals.progress.getScreen());
+    		System.out.println("--------------------------------");
             this.wave = new ZombieWave(this.currentWave);
             this.currentWave++;
-            Globals.waveInProgress = true;
+            Globals.progress.setStatus(Status.waveInProgress);
+            
         } catch(Exception e) {
             createErrorWindow(e);
         }
@@ -164,7 +169,7 @@ public class GZSFramework {
     
     public void createErrorWindow(Exception e) {
         ErrorWindow error = new ErrorWindow(e);
-        Globals.crashed = true;
+        Globals.progress.setStatus(Status.crashed);
         frame.getContentPane().removeAll();
         frame.add(error);
         frame.pack();
@@ -175,8 +180,8 @@ public class GZSFramework {
         Globals.animation = new Runnable() {
             @Override
             public void run() {
-                Globals.running = true;
-                while (Globals.running) {
+                Globals.progress.setStatus(Status.running);
+                while (Globals.progress.compareWith(Status.running)) {
                     try {
                         update();
                         canvas.repaint();
@@ -202,17 +207,20 @@ public class GZSFramework {
     
     
     private void waveUpdate() {
-    	if(!Globals.waveInProgress) {
+    	if(Globals.progress.compareWith(Status.intermission)) {
             // If the player is in between waves, check if the countdown has reached zero.
             if(Globals.gameTime.getElapsedMillis() >= Globals.nextWave) createWave();
-        } else {
+        } else if (Globals.progress.compareWith(Status.waveInProgress)){
         	this.wave.update(player, itemFactory);
         	this.wave.checkPlayerDamage(player);
         	if(this.wave.waveFinished()) {
-        		Globals.waveInProgress = false;
+        		Globals.progress.setStatus(Status.intermission);
                 Globals.nextWave = Globals.gameTime.getElapsedMillis() + (10 * 1000);                    		
         	}
-        }
+        } else if(Globals.progress.compareWith(Status.running)) {
+    		Globals.progress.setStatus(Status.intermission);
+    	}
+    	
     }
     
     private void checkPlayerLife() {
@@ -221,7 +229,7 @@ public class GZSFramework {
             player.die();
             if(player.getLives() == 0) {
                 // Show death screen and reset player.
-                Globals.deathScreen = true;
+                Globals.progress.setScreen(Screen.death);
                 synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.clear(); }
             }
             Sounds.FLAMETHROWER.getAudio().stop();
@@ -232,7 +240,7 @@ public class GZSFramework {
         { // Begin weapon updates.
             Iterator<Weapon> it = this.player.getWeaponsMap().values().iterator();
             while(it.hasNext()) {
-                Weapon w = it.next();
+            	Weapon w = it.next();
                 w.updateWeapon(this.wave.getZombies());
             }
         } // End weapon updates.    	
@@ -254,237 +262,225 @@ public class GZSFramework {
     }
     
     
-    
-    
-    
     private void initializeListeners() {
-    	{ // Begin adding key and mouse listeners to canvas.
-            canvas.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent k) {
-                    if(Globals.started) {
-                        int key = k.getKeyCode();
-                        if (key == KeyEvent.VK_W) Globals.keys[0] = true;
-                        if (key == KeyEvent.VK_A) Globals.keys[1] = true;
-                        if (key == KeyEvent.VK_S) Globals.keys[2] = true;
-                        if (key == KeyEvent.VK_D) Globals.keys[3] = true;
-                    }
+    	canvasListenerManager = new CanvasListenerManager(canvas,Globals.progress);
+    	
+    	canvasListenerManager.setBaseListener(new CanvasListener() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				Globals.mousePos.x = e.getX() + (Images.CROSSHAIR.getWidth() / 2);
+                Globals.mousePos.y = e.getY() + (Images.CROSSHAIR.getHeight() / 2);
+			}
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				Globals.mousePos.x = e.getX() + (Images.CROSSHAIR.getWidth() / 2);
+				Globals.mousePos.y = e.getY() + (Images.CROSSHAIR.getHeight() / 2);
+            }
+    	});
+    	canvasListenerManager.setListener(Screen.start, new CanvasListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				System.out.println("clicked");
+				if((e.getButton() == MouseEvent.BUTTON1)) {
+                        Globals.progress.setScreen(Screen.field);
+                        Globals.gameTime.reset();
                 }
 
-                @Override
-                public void keyReleased(KeyEvent k) {
-                    if(Globals.started) {
-                        int key = k.getKeyCode();
-                        if (key == KeyEvent.VK_W) Globals.keys[0] = false;
-                        if (key == KeyEvent.VK_A) Globals.keys[1] = false;
-                        if (key == KeyEvent.VK_S) Globals.keys[2] = false;
-                        if (key == KeyEvent.VK_D) Globals.keys[3] = false;
-                        if (key == KeyEvent.VK_P) {
-                            if(!Globals.deathScreen && !Globals.crashed && 
-                               !Globals.storeOpen && !Globals.levelScreenOpen) {
-                                if(Globals.paused) {
-                                    Globals.paused = false;
-                                    Sounds.UNPAUSE.play();
-                                } else {
-                                    Globals.paused = true;
-                                    Sounds.PAUSE.play();
-                                }
-                            }
-                        }
-                        if (key == KeyEvent.VK_B) {
-                            if(!Globals.deathScreen && !Globals.crashed && !Globals.levelScreenOpen) {
-                                if(Globals.storeOpen) {
-                                    Globals.storeOpen = false;
-                                    Globals.paused = false;
-                                } else {
-                                    Globals.storeOpen = true;
-                                    Globals.paused = true;
-                                }
-                            }
-                        }
-                        if (key == KeyEvent.VK_T) {
-                            if(!Globals.deathScreen && !Globals.crashed && !Globals.storeOpen) {
-                                if(Globals.levelScreenOpen) {
-                                    Globals.levelScreenOpen = false;
-                                    Globals.paused = false;
-                                } else {
-                                    Globals.levelScreenOpen = true;
-                                    Globals.paused = true;
-                                }
-                            }
-                        }
-                        if(!Globals.deathScreen && !Globals.crashed && !Globals.storeOpen && !Globals.levelScreenOpen) {
-                            if (key == Globals.HANDGUN.getKey()) {
-                                int r = player.setWeapon(Globals.HANDGUN.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.HANDGUN.getName());
-                            }
-                            if (key == Globals.ASSAULT_RIFLE.getKey()) {
-                                int r = player.setWeapon(Globals.ASSAULT_RIFLE.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.ASSAULT_RIFLE.getName());
-                            }
-                            if (key == Globals.SHOTGUN.getKey()) {
-                                int r = player.setWeapon(Globals.SHOTGUN.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.SHOTGUN.getName());
-                            }
-                            if (key == Globals.FLAMETHROWER.getKey()) {
-                                int r = player.setWeapon(Globals.FLAMETHROWER.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.FLAMETHROWER.getName());
-                            }
-                            if (key == Globals.GRENADE.getKey()) {
-                                int r = player.setWeapon(Globals.GRENADE.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.GRENADE.getName());
-                            }
-                            if (key == Globals.LANDMINE.getKey()) {
-                                int r = player.setWeapon(Globals.LANDMINE.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.LANDMINE.getName());
-                            }
-                            if (key == Globals.FLARE.getKey()) {
-                                int r = player.setWeapon(Globals.FLARE.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.FLARE.getName());
-                            }
-                            if (key == Globals.LASERWIRE.getKey()) {
-                                int r = player.setWeapon(Globals.LASERWIRE.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.LASERWIRE.getName());
-                            }
-                            if (key == Globals.TURRETWEAPON.getKey()) {
-                                int r = player.setWeapon(Globals.TURRETWEAPON.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.TURRETWEAPON.getName());
-                            }
-                            if (key == Globals.TELEPORTER.getKey()) {
-                                int r = player.setWeapon(Globals.TELEPORTER.getName());
-                                if(r == 1) loadout.setCurrentWeapon(Globals.TELEPORTER.getName());
-                            }
-                        }
-                    }
+			}
+    	});
+    	canvasListenerManager.setListener(Screen.field, new CanvasListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				int key = e.getKeyCode();
+                switch(key) {
+            		case KeyEvent.VK_W : Globals.keys[0] = true; break;
+            		case KeyEvent.VK_A : Globals.keys[1] = true; break;
+            		case KeyEvent.VK_S : Globals.keys[2] = true; break;
+            		case KeyEvent.VK_D : Globals.keys[3] = true; break;
                 }
-            });
+			}
+			public void keyReleased(KeyEvent e) {
+                int key = e.getKeyCode();
+                
+                switch(key) {
+                	case KeyEvent.VK_W : Globals.keys[0] = false; break;
+                	case KeyEvent.VK_A : Globals.keys[1] = false; break;
+                	case KeyEvent.VK_S : Globals.keys[2] = false; break;
+                	case KeyEvent.VK_D : Globals.keys[3] = false; break;
+                	case KeyEvent.VK_P :
+                		if(Globals.progress.isPaused())
+                			Globals.progress.resume(); 
+    	                else
+    	                	Globals.progress.pause();
+                		break;
+                	// 占쏙옙 Pause 占쏙옙占승울옙占쏙옙 占쏙옙占�, 占쏙옙占쏙옙창 占쏙옙耭載∽옙쨉占� 혹占쏙옙 占쏙옙占쏙옙占쏙옙占� 占쏙옙耭載∽옙占� 占쌕뀐옙 占쏙옙.
+                	case KeyEvent.VK_B : Globals.progress.setScreen(Screen.store); break;
+                	case KeyEvent.VK_T : Globals.progress.setScreen(Screen.level); break;
+                }
+                
+                if (key == Globals.HANDGUN.getKey()) {
+                    int r = player.setWeapon(Globals.HANDGUN.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.HANDGUN.getName());
+                }
+                if (key == Globals.ASSAULT_RIFLE.getKey()) {
+                    int r = player.setWeapon(Globals.ASSAULT_RIFLE.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.ASSAULT_RIFLE.getName());
 
-            canvas.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent m) {
-                    if((m.getButton() == MouseEvent.BUTTON1)) {
-                        if(!Globals.started) {
-                            Globals.started = true;
-                            Globals.gameTime.reset();
-                        }
-                        if(Globals.started && Globals.deathScreen) {
-                            resetGame();
-                        }
-                        if(Globals.started && Globals.storeOpen) store.click(m, player);
-                        else if(Globals.started && Globals.levelScreenOpen) levelScreen.click(m, player);
+                }
+                if (key == Globals.SHOTGUN.getKey()) {
+                    int r = player.setWeapon(Globals.SHOTGUN.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.SHOTGUN.getName());
+                }
+                if (key == Globals.FLAMETHROWER.getKey()) {
+                    int r = player.setWeapon(Globals.FLAMETHROWER.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.FLAMETHROWER.getName());
+                }
+                if (key == Globals.GRENADE.getKey()) {
+                    int r = player.setWeapon(Globals.GRENADE.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.GRENADE.getName());
+                }
+                if (key == Globals.LANDMINE.getKey()) {
+                    int r = player.setWeapon(Globals.LANDMINE.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.LANDMINE.getName());
+                }
+                if (key == Globals.FLARE.getKey()) {
+                    int r = player.setWeapon(Globals.FLARE.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.FLARE.getName());
+                }
+                if (key == Globals.LASERWIRE.getKey()) {
+                    int r = player.setWeapon(Globals.LASERWIRE.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.LASERWIRE.getName());
+                }
+                if (key == Globals.TURRETWEAPON.getKey()) {
+                    int r = player.setWeapon(Globals.TURRETWEAPON.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.TURRETWEAPON.getName());
+                }
+                if (key == Globals.TELEPORTER.getKey()) {
+                    int r = player.setWeapon(Globals.TELEPORTER.getName());
+                    if(r == 1) loadout.setCurrentWeapon(Globals.TELEPORTER.getName());
+                }
+			}
+			@Override
+			public void mouseClicked(MouseEvent e) {}
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.getButton() == MouseEvent.BUTTON1) Globals.buttons[0] = true;
+                if (e.getButton() == MouseEvent.BUTTON3) Globals.buttons[1] = true;
+			}
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (e.getButton() == MouseEvent.BUTTON1) {
+                    Globals.buttons[0] = false;
+                    if(player.getCurrentWeaponName().equals(Globals.FLAMETHROWER.getName())) {
+                        Sounds.FLAMETHROWER.getAudio().stop();
+                    }
+                    
+                    // Reset non-automatic weapons.
+                    Iterator<Weapon> it = player.getWeaponsMap().values().iterator();
+                    while(it.hasNext()) {
+                        Weapon w = it.next();
+                        if(!w.isAutomatic() && w.hasFired()) w.resetFire(); 
                     }
                 }
-                @Override
-                public void mousePressed(MouseEvent m) {
-                    if(Globals.started) {
-                        if (m.getButton() == MouseEvent.BUTTON1) Globals.buttons[0] = true;
-                        if (m.getButton() == MouseEvent.BUTTON3) Globals.buttons[1] = true;
-                    }
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent m) {
-                    if(Globals.started) {
-                        if (m.getButton() == MouseEvent.BUTTON1) {
-                            Globals.buttons[0] = false;
-                            if(player.getCurrentWeaponName().equals(Globals.FLAMETHROWER.getName())) {
-                                Sounds.FLAMETHROWER.getAudio().stop();
-                            }
-                            
-                            // Reset non-automatic weapons.
-                            Iterator<Weapon> it = player.getWeaponsMap().values().iterator();
-                            while(it.hasNext()) {
-                                Weapon w = it.next();
-                                if(!w.isAutomatic() && w.hasFired()) w.resetFire(); 
-                            }
-                        }
-                        if (m.getButton() == MouseEvent.BUTTON3) Globals.buttons[1] = false;
-                    }
-                }
-            });
-
-            canvas.addMouseMotionListener(new MouseAdapter() {
-                @Override
-                public void mouseMoved(MouseEvent m) {
-                    if(Globals.started) {
-                        Globals.mousePos.x = m.getX() + (Images.CROSSHAIR.getWidth() / 2);
-                        Globals.mousePos.y = m.getY() + (Images.CROSSHAIR.getHeight() / 2);
-                    }
-                }
-
-                @Override
-                public void mouseDragged(MouseEvent m) {
-                    if(Globals.started) {
-                        Globals.mousePos.x = m.getX() + (Images.CROSSHAIR.getWidth() / 2);
-                        Globals.mousePos.y = m.getY() + (Images.CROSSHAIR.getHeight() / 2);
-                    }
-                }
-            });
-            
-            canvas.addMouseWheelListener(new MouseAdapter() {
-                @Override
-                public void mouseWheelMoved(MouseWheelEvent mw) {
-                    if(player.getWeaponsMap().size() > 1) {
-                        if(Globals.started && !Globals.deathScreen && !Globals.crashed &&
-                           !Globals.storeOpen && !Globals.levelScreenOpen) {
-                            int notches = mw.getWheelRotation();
-                            String [] weaponNames = {Globals.HANDGUN.getName(), Globals.ASSAULT_RIFLE.getName(),
-                                                     Globals.SHOTGUN.getName(), Globals.FLAMETHROWER.getName(),
-                                                     Globals.GRENADE.getName(), Globals.LANDMINE.getName(),
-                                                     Globals.FLARE.getName(), Globals.LASERWIRE.getName(),
-                                                     Globals.TURRETWEAPON.getName(), Globals.TELEPORTER.getName()};
-                            if(notches < 0) { // Wheel scrolled up.
-                                // Move weapon selection to the right.
-                                String name = Globals.HANDGUN.getName();
-                                for(int i = 0; i < weaponNames.length; i++) {
-                                    if(weaponNames[i].equals(player.getWeapon().getName())) {
-                                        if((i + 1) > weaponNames.length) name = Globals.HANDGUN.getName();
-                                        else {
-                                            // Find the next weapon the player has and set it.
-                                            for(int j = (i + 1); j < weaponNames.length; j++) {
-                                                if(player.hasWeapon(weaponNames[j])) {
-                                                    name = weaponNames[j];
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    }
-                                }
-                                player.setWeapon(name);
-                                loadout.setCurrentWeapon(name);
-                            } else { // Wheel scrolled down.
-                                // Move weapon selection to the left.
-                                String name = Globals.HANDGUN.getName();
-                                for(int i = 0; i < weaponNames.length; i++) {
-                                    if(weaponNames[i].equals(player.getWeapon().getName())) {
-                                        if((i - 1) < 0) {
-                                            // Get the last weapon the player has.
-                                            for(int j = 9; j >= 0; j--) {
-                                                if(player.hasWeapon(weaponNames[j])) {
-                                                    name = weaponNames[j];
-                                                    break;
-                                                }
-                                            }
+				else if (e.getButton() == MouseEvent.BUTTON3) Globals.buttons[1] = false;
+			}
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				if(player.getWeaponsMap().size() > 1) {
+                    int notches = e.getWheelRotation();
+                    String [] weaponNames = {Globals.HANDGUN.getName(), Globals.ASSAULT_RIFLE.getName(),
+                                             Globals.SHOTGUN.getName(), Globals.FLAMETHROWER.getName(),
+                                             Globals.GRENADE.getName(), Globals.LANDMINE.getName(),
+                                             Globals.FLARE.getName(), Globals.LASERWIRE.getName(),
+                                             Globals.TURRETWEAPON.getName(), Globals.TELEPORTER.getName()};
+                    if(notches < 0) { // Wheel scrolled up.
+                        // Move weapon selection to the right.
+                        String name = Globals.HANDGUN.getName();
+                        for(int i = 0; i < weaponNames.length; i++) {
+                            if(weaponNames[i].equals(player.getWeapon().getName())) {
+                                if((i + 1) > weaponNames.length) name = Globals.HANDGUN.getName();
+                                else {
+                                    // Find the next weapon the player has and set it.
+                                    for(int j = (i + 1); j < weaponNames.length; j++) {
+                                        if(player.hasWeapon(weaponNames[j])) {
+                                            name = weaponNames[j];
                                             break;
-                                        } else {
-                                            for(int j = (i - 1); j >= 0; j--) {
-                                                if(player.hasWeapon(weaponNames[j])) {
-                                                    name = weaponNames[j];
-                                                    break;
-                                                }
-                                            }
                                         }
                                     }
                                 }
-                                player.setWeapon(name);
-                                loadout.setCurrentWeapon(name);
+                                break;
                             }
                         }
+                        player.setWeapon(name);
+                        loadout.setCurrentWeapon(name);
+                    } else { // Wheel scrolled down.
+                        // Move weapon selection to the left.
+                        String name = Globals.HANDGUN.getName();
+                        for(int i = 0; i < weaponNames.length; i++) {
+                            if(weaponNames[i].equals(player.getWeapon().getName())) {
+                                if((i - 1) < 0) {
+                                    // Get the last weapon the player has.
+                                    for(int j = 9; j >= 0; j--) {
+                                        if(player.hasWeapon(weaponNames[j])) {
+                                            name = weaponNames[j];
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                } else {
+                                    for(int j = (i - 1); j >= 0; j--) {
+                                        if(player.hasWeapon(weaponNames[j])) {
+                                            name = weaponNames[j];
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        player.setWeapon(name);
+                        loadout.setCurrentWeapon(name);
                     }
                 }
-            });
-        } // End adding key and mouse listeners to canvas.
+			}
+    	});
+    	canvasListenerManager.setListener(Screen.store, new CanvasListener() {
+    		@Override
+    		public void keyReleased(KeyEvent e) {
+    			int key = e.getKeyCode();
+    			switch(key) {
+            		case KeyEvent.VK_B : Globals.progress.setScreen(Screen.field); break;
+    			}
+    		}
+    		
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if((e.getButton() == MouseEvent.BUTTON1))
+                    store.click(e, player);
+			}
+    	});
+    	canvasListenerManager.setListener(Screen.level, new CanvasListener() {
+    		@Override
+    		public void keyReleased(KeyEvent e) {
+    			int key = e.getKeyCode();
+    			switch(key) {
+            		case KeyEvent.VK_T : Globals.progress.setScreen(Screen.field); break;
+    			}
+    		}
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if((e.getButton() == MouseEvent.BUTTON1))
+                    levelScreen.click(e, player);	
+			}
+    	});
+    	canvasListenerManager.setListener(Screen.death, new CanvasListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if((e.getButton() == MouseEvent.BUTTON1))
+                    resetGame();
+			}
+    	});
+
+    	
     }
     
 }

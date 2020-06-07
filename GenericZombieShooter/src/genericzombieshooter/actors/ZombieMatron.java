@@ -91,7 +91,7 @@ public class ZombieMatron extends Zombie {
                 p_.x += radius_ * Math.cos(theta_);
                 p_.y += radius_ * Math.sin(theta_);
                 Animation a_ = new Animation(Images.ZOMBIE_TINY, 20, 20, 2, (int)p_.x, (int)p_.y, 100, 0, true);
-                Zombie z_ = new Zombie(p_, Globals.ZOMBIE_TINY_TYPE, 100, 1, 2, 50, (ZombieMatron.EXP_VALUE / numOfZombies), a_);
+                Zombie z_ = new TinyZombie(p_, 100, 1, 2, 50, (ZombieMatron.EXP_VALUE / numOfZombies), a_);
                 toAdd.add(z_);
             }
         }
@@ -119,16 +119,7 @@ public class ZombieMatron extends Zombie {
     }
     
     @Override
-    public void moan(Player player) {
-        if(!this.moaned) {
-            if(Globals.gameTime.getElapsedMillis() >= this.nextMoan) {
-                double xD = player.getCenterX() - this.x;
-                double yD = player.getCenterY() - this.y;
-                double dist = Math.sqrt((xD * xD) + (yD * yD));
-                double gain = 1.0 - (dist / Player.AUDIO_RANGE);
-                Sounds.MOAN5.play(gain);
-                this.moaned = true;
-            }
-        }
+    protected void soundMoan(double gain) {
+    	Sounds.MOAN5.play(gain);
     }
 }
