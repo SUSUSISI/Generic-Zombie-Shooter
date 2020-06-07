@@ -66,24 +66,17 @@ public class ZombatBoss extends Zombie {
             if(this.health > this.maxHealth) this.health = this.maxHealth;
         }
     }
-    
-    @Override
-    public void moan(Player player) {
-        if(!this.moaned) {
-            if(Globals.gameTime.getElapsedMillis() >= this.nextMoan) {
-                double xD = player.getCenterX() - this.x;
-                double yD = player.getCenterY() - this.y;
-                double dist = Math.sqrt((xD * xD) + (yD * yD));
-                double gain = 1.0 - (dist / Player.AUDIO_RANGE);
-                Sounds.MOAN8.play(gain);
-                this.moaned = true;
-            }
-        }
-    }
-    
+
+	@Override
+	protected void soundMoan(double gain) {
+        Sounds.MOAN8.play(gain);
+		
+	}
+	
     private boolean inRange(Point2D.Double playerPos, Point2D.Double myPos) {
         double xD = playerPos.x - myPos.x;
         double yD = playerPos.y - myPos.y;
         return Math.sqrt((xD * xD) + (yD * yD)) <= ZombatBoss.ATTACK_DISTANCE;
     }
+
 }

@@ -16,19 +16,21 @@
  **/
 package genericzombieshooter.structures.weapons;
 
+import genericzombieshooter.GZSFramework;
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.actors.Zombie;
 import genericzombieshooter.misc.Globals;
 import genericzombieshooter.misc.Images;
+import genericzombieshooter.structures.LightSource;
 import genericzombieshooter.structures.Particle;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.event.KeyEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -40,13 +42,11 @@ import java.util.List;
  * wire can be deployed at a time.
  * @author Darin Beaudreau
  */
-public class LaserWire extends Weapon {
+public class LaserWire implements WeaponStrategy {
     // Final Variables
     private static final int WEAPON_PRICE = 1500;
     private static final int AMMO_PRICE = 400;
     private static final int DEFAULT_AMMO = 1;
-    private static final int MAX_AMMO = 1;
-    private static final int AMMO_PER_USE = 1;
     private static final int DAMAGE_BY_LASER = 100;
     private static final long LASER_COOLDOWN = 500;
     private static final int PARTICLE_LIFE = 2 * 60 * 1000;
@@ -54,12 +54,36 @@ public class LaserWire extends Weapon {
     private static final int MAX_LASER_DIST = 300;
     
     // Member Variables
+    private String name;
+    private int key;
+    private BufferedImage image;
+    protected int ammoLeft;
+    private int maxAmmo;
+    private int ammoPerUse;
+    private boolean automatic; // Indicates if the weapon can be fired continuously.
+    protected boolean fired; // Used with automatic to determine if the weapon needs to be fired again.
+    private int cooldown;
+    private int coolPeriod;
+    protected List<Particle> particles;
     private List<Line2D.Double> lasers;
     private long lastDamageDone;
     
-    public LaserWire() {
-        super("Laser Wire", KeyEvent.VK_8, "/resources/images/GZS_LaserWire.png",
-              LaserWire.DEFAULT_AMMO, LaserWire.MAX_AMMO, LaserWire.AMMO_PER_USE, 50, false);
+    public LaserWire(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
+    	this.name = name;
+        this.key = key;
+        
+        this.image = GZSFramework.loadImage(filename);
+        
+        this.ammoLeft = ammoLeft;
+        this.maxAmmo = maxAmmo;
+        this.ammoPerUse = ammoPerUse;
+        
+        this.automatic = automatic;
+        this.fired = false;
+        this.cooldown = cooldown;
+        this.coolPeriod = cooldown;
+        
+        this.particles = Collections.synchronizedList(new ArrayList<Particle>());
         this.lasers = Collections.synchronizedList(new ArrayList<Line2D.Double>());
         this.lastDamageDone = 0;
     }
@@ -75,15 +99,22 @@ public class LaserWire extends Weapon {
     
     @Override
     public void resetAmmo() {
-        super.resetAmmo();
+    	synchronized(this.particles) { this.particles.clear(); }
         synchronized(this.lasers) { this.lasers.clear(); }
         this.ammoLeft = LaserWire.DEFAULT_AMMO;
+    }
+    
+    private boolean checkFire() {
+    	boolean isAmmoLeft = (this.ammoLeft >= this.ammoPerUse);
+        boolean isCoolDown = (this.cooldown != 0);
+        boolean canFire = this.automatic || (!this.automatic && !this.fired);
+        return (isAmmoLeft) && (!isCoolDown) && (canFire); 
     }
     
     @Override
     public boolean canFire() {
         boolean lessThanTwoTerminals = this.particles.size() < 2;
-        return super.canFire() && lessThanTwoTerminals;
+        return checkFire() && lessThanTwoTerminals;
     }
     
     @Override
@@ -91,13 +122,13 @@ public class LaserWire extends Weapon {
         { // Update particles.
             synchronized(this.particles) {
                 if(!this.particles.isEmpty()) {
-                    Iterator<Particle> it = this.particles.iterator();
-                    while(it.hasNext()) {
-                        Particle p = it.next();
-                        p.update();
+                    Iterator<Particle> particleIterator = this.particles.iterator();
+                    while(particleIterator.hasNext()) {
+                        Particle particle = particleIterator.next();
+                        particle.update();
                         
-                        if(!p.isAlive()) {
-                            it.remove();
+                        if(!particle.isAlive()) {
+                            particleIterator.remove();
                             continue;
                         }
                     }
@@ -109,17 +140,17 @@ public class LaserWire extends Weapon {
                 
                 // Check if there are exactly two terminals. If so, create a laser.
                 if((this.particles.size() == 2) && this.lasers.isEmpty()) {
-                    Point2D.Double p1 = this.particles.get(0).getPos();
-                    Point2D.Double p2 = this.particles.get(1).getPos();
+                    Point2D.Double particleA = this.particles.get(0).getPos();
+                    Point2D.Double particleB = this.particles.get(1).getPos();
                     /* If the distance between the two terminals is too far,
                        refund the player's ammo and delete the two terminals placed. */
-                    double xD = p1.x - p2.x;
-                    double yD = p1.y - p2.y;
-                    if((Math.sqrt((xD * xD) + (yD * yD))) >= LaserWire.MAX_LASER_DIST) {
+                    double particleX = particleA.x - particleB.x;
+                    double particleY = particleA.y - particleB.y;
+                    if((Math.sqrt((particleX * particleX) + (particleY * particleY))) >= LaserWire.MAX_LASER_DIST) {
                         this.particles.clear();
                         this.ammoLeft = LaserWire.DEFAULT_AMMO;
                     } else {
-                        this.lasers.add(new Line2D.Double(p1, p2));
+                        this.lasers.add(new Line2D.Double(particleA, particleB));
                         int newLife = LaserWire.LASER_LIFE / (int)Globals.SLEEP_TIME;
                         this.particles.get(0).setLife(newLife);
                         this.particles.get(1).setLife(newLife);
@@ -136,10 +167,10 @@ public class LaserWire extends Weapon {
         { // Draw particles.
             synchronized(this.particles) {
                 if(!this.particles.isEmpty()) {
-                    Iterator<Particle> it = this.particles.iterator();
-                    while(it.hasNext()) {
-                        Particle p = it.next();
-                        if(p.isAlive()) p.draw(g2d);
+                    Iterator<Particle> particleIterator = this.particles.iterator();
+                    while(particleIterator.hasNext()) {
+                        Particle particle = particleIterator.next();
+                        if(particle.isAlive()) particle.draw(g2d);
                     }
                 }
                 if(this.particles.size() == 1) {
@@ -156,9 +187,9 @@ public class LaserWire extends Weapon {
                 if(!this.lasers.isEmpty()) {
                     g2d.setColor(new Color(191, 74, 99));
                     g2d.setStroke(new BasicStroke(2));
-                    Iterator<Line2D.Double> it = this.lasers.iterator();
-                    while(it.hasNext()) {
-                        Line2D.Double line = it.next();
+                    Iterator<Line2D.Double> laserIterator = this.lasers.iterator();
+                    while(laserIterator.hasNext()) {
+                        Line2D.Double line = laserIterator.next();
                         g2d.draw(line);
                     }
                 }
@@ -170,8 +201,8 @@ public class LaserWire extends Weapon {
     public void fire(double theta, Point2D.Double pos, Player player) {
         synchronized(this.particles) {
             if(this.canFire()) {
-                Particle p = createLaserTerminal(theta, pos);
-                this.particles.add(p);
+                Particle particle = createLaserTerminal(theta, pos);
+                this.particles.add(particle);
                 if(this.particles.size() == 2) this.consumeAmmo();
                 this.resetCooldown();
                 this.fired = true;
@@ -180,7 +211,7 @@ public class LaserWire extends Weapon {
     }
     
     private Particle createLaserTerminal(double theta, Point2D.Double pos) {
-        Particle p = new Particle(theta, 0.0, 0.0, (LaserWire.PARTICLE_LIFE / (int)Globals.SLEEP_TIME),
+        Particle particle = new Particle(theta, 0.0, 0.0, (LaserWire.PARTICLE_LIFE / (int)Globals.SLEEP_TIME),
                                   pos, new Dimension(16, 16), Images.LASER_TERMINAL) {
             @Override
             public void update() {
@@ -194,7 +225,7 @@ public class LaserWire extends Weapon {
                 g2d.drawImage(this.image, (int)x, (int)y, null);
             }
         };
-        return p;
+        return particle;
     }
     
     @Override
@@ -203,9 +234,9 @@ public class LaserWire extends Weapon {
             int damage = 0;
             if(Globals.gameTime.getElapsedMillis() >= (this.lastDamageDone + LaserWire.LASER_COOLDOWN)) {
                 if(!this.lasers.isEmpty()) {
-                    Iterator<Line2D.Double> it = this.lasers.iterator();
-                    while(it.hasNext()) {
-                        Line2D.Double laser = it.next();
+                    Iterator<Line2D.Double> laserIterator = this.lasers.iterator();
+                    while(laserIterator.hasNext()) {
+                        Line2D.Double laser = laserIterator.next();
                         if(rect.intersectsLine(laser)) {
                             damage += LaserWire.DAMAGE_BY_LASER;
                             this.lastDamageDone = Globals.gameTime.getElapsedMillis();
@@ -216,4 +247,85 @@ public class LaserWire extends Weapon {
             return damage;
         }
     }
+
+    @Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public int getKey() {
+		return this.key;
+	}
+
+	@Override
+	public BufferedImage getImage() {
+		return this.image;
+	}
+
+	@Override
+	public int getAmmoLeft() {
+		return this.ammoLeft;
+	}
+
+	@Override
+	public int getMaxAmmo() {
+		return this.maxAmmo;
+	}
+
+	@Override
+	public boolean isAutomatic() {
+		return this.automatic;
+	}
+
+	@Override
+	public boolean hasFired() {
+		return this.fired;
+	}
+
+	@Override
+	public void resetFire() {
+		this.fired = false;
+	}
+
+	@Override
+	public double getCooldownPercentage() {
+		return ((double)cooldown / (double)coolPeriod);
+	}
+
+	@Override
+	public void resetCooldown() {
+		this.cooldown = this.coolPeriod;		
+	}
+
+	@Override
+	public void cool() {
+		if(this.cooldown > 0) this.cooldown--;
+	}
+
+	@Override
+	public boolean ammoFull() {
+		return this.ammoLeft == this.maxAmmo;
+	}
+
+	@Override
+	public void addAmmo(int amount) {
+		if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
+        else this.ammoLeft += amount;
+	}
+
+	@Override
+	public void consumeAmmo() {
+		this.ammoLeft -= this.ammoPerUse;
+	}
+
+	@Override
+	public List<Particle> getParticles() {
+		return this.particles;
+	}
+
+	@Override
+	public List<LightSource> getLights() {
+		return null;
+	}
 }

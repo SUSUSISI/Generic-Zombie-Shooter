@@ -27,7 +27,8 @@ import genericzombieshooter.structures.items.Invulnerability;
 import genericzombieshooter.structures.items.NightVision;
 import genericzombieshooter.structures.items.SpeedUp;
 import genericzombieshooter.structures.items.UnlimitedAmmo;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -82,7 +83,7 @@ public class Player extends Rectangle2D.Double {
     private long lastPoisoned;
     
     private String currentWeaponName;
-    private HashMap<String, Weapon> weaponsMap;
+    private HashMap<String, WeaponStrategy> weaponsMap;
     
     // Statistic Variables
     private long deathTime;
@@ -134,7 +135,7 @@ public class Player extends Rectangle2D.Double {
         this.medkitsUsed = 0;
         this.ammoCratesUsed = 0;
         
-        this.weaponsMap = new HashMap<String, Weapon>();
+        this.weaponsMap = new HashMap<String, WeaponStrategy>();
         this.addWeapon(Globals.HANDGUN);
         this.currentWeaponName = Globals.HANDGUN.getName();
     }
@@ -174,46 +175,53 @@ public class Player extends Rectangle2D.Double {
         if(this.lives > 0) reset();
     }
     public int spendPoint(int id, int currentLevel) {
-        if(id == Player.MAX_HEALTH_ID) {
-            // Determine if player has enough points to buy the next upgrade.;
-            if(this.skillPoints >= (currentLevel + 1)) {
-                // Determine if the player has already maxed out this skill.
-                if(currentLevel < 5) {
-                    // Deduct the appropriate number of skill points and raise the skill to the next level.
-                    this.skillPoints -= (currentLevel + 1);
-                    this.maxHealth += Player.MAX_HEALTH_INC;
-                    this.addHealth(Player.MAX_HEALTH_INC);
-                    synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Max Health increased!", 5000)); }
-                    return 1;
+        final boolean hasEnoughPoints = this.skillPoints >= (currentLevel + 1);
+        final boolean notMaxLevel = currentLevel < 5;
+
+    	if(id == Player.MAX_HEALTH_ID) {
+        	if(hasEnoughPoints) {
+        		if(notMaxLevel) {
+                    return healthLevelUp(currentLevel);
                 }
             }
         } else if(id == Player.DAMAGE_ID) {
-            // Determine if player has enough points to buy the next upgrade.
-            if(this.skillPoints >= (currentLevel + 1)) {
-                // Determine if the player has already maxed out this skill.
-                if(currentLevel < 5) {
-                    // Deduct the appropriate number of skill points and raise the skill to the next level.
-                    this.skillPoints -= (currentLevel + 1);
-                    this.damageBonus += Player.DAMAGE_INC;
-                    synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Damage increased!", 5000)); }
-                    return 1;
+            if(hasEnoughPoints) {
+                if(notMaxLevel) {
+                    return damageLevelUp(currentLevel);
                 }
             }
         } else if(id == Player.SPEED_ID) {
-            // Determine if player has enough points to buy the next upgrade.
-            if(this.skillPoints >= (currentLevel + 1)) {
-                // Determine if the player has already maxed out this skill.
-                if(currentLevel < 5) {
-                    // Deduct the appropriate number of skill points and raise the skill to the next level.
-                    this.skillPoints -= (currentLevel + 1);
-                    this.speedBonus += Player.SPEED_INC;
-                    synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Speed increased!", 5000)); }
-                    return 1;
+            if(hasEnoughPoints) {
+                if(notMaxLevel) {
+                    return speedLevelUp(currentLevel);
                 }
             }
         }
         return 0;
     }
+
+	protected int speedLevelUp(int currentLevel) {
+		this.skillPoints -= (currentLevel + 1);
+		this.speedBonus += Player.SPEED_INC;
+		synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Speed increased!", 5000)); }
+		return 1;
+	}
+
+	protected int damageLevelUp(int currentLevel) {
+		this.skillPoints -= (currentLevel + 1);
+		this.damageBonus += Player.DAMAGE_INC;
+		synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Damage increased!", 5000)); }
+		return 1;
+	}
+
+	protected int healthLevelUp(int currentLevel) {
+		this.skillPoints -= (currentLevel + 1);
+		this.maxHealth += Player.MAX_HEALTH_INC;
+		this.addHealth(Player.MAX_HEALTH_INC);
+		synchronized(Globals.GAME_MESSAGES) { Globals.GAME_MESSAGES.add(new Message("Max Health increased!", 5000)); }
+		return 1;
+	}
+	
     public void reset() {
         this.statusEffects.clear();
         
@@ -230,7 +238,7 @@ public class Player extends Rectangle2D.Double {
             this.lives = 3;
             
             this.deathTime = Globals.gameTime.getElapsedMillis();
-            this.weaponsMap = new HashMap<String, Weapon>();
+            this.weaponsMap = new HashMap<String, WeaponStrategy>();
             this.weaponsMap.put(Globals.HANDGUN.getName(), Globals.HANDGUN);
         }
         else {
@@ -256,18 +264,19 @@ public class Player extends Rectangle2D.Double {
     }
     
     public boolean hasWeapon(String name) { return this.weaponsMap.containsKey(name); }
-    public Weapon getWeapon() { return this.weaponsMap.get(this.currentWeaponName); }
-    public Weapon getWeapon(String name) { return this.weaponsMap.get(name); }
+    public WeaponStrategy getWeapon() { return this.weaponsMap.get(this.currentWeaponName); }
+    public WeaponStrategy getWeapon(String name) { return this.weaponsMap.get(name); }
     public String getCurrentWeaponName() { return this.currentWeaponName; }
-    public HashMap<String, Weapon> getWeaponsMap() { return this.weaponsMap; }
+    public HashMap<String, WeaponStrategy> getWeaponsMap() { return this.weaponsMap; }
     public int setWeapon(String name) {
         if(this.weaponsMap.containsKey(name)) {
-            this.currentWeaponName = name;
+            Globals.setWeaponStrategy(name);
+            this.currentWeaponName = Globals.weaponStrategy.getName();
             Sounds.FLAMETHROWER.getAudio().stop();
             return 1;
         } else return 0;
     }
-    public void addWeapon(Weapon w) {
+    public void addWeapon(WeaponStrategy w) {
         this.weaponsMap.put(w.getName(), w);
     }
     
@@ -283,8 +292,8 @@ public class Player extends Rectangle2D.Double {
             if(Globals.keys[i]) this.move(i);
         }
         
-        // If the left mouse button is held down, create a new projectile.
-        if(Globals.buttons[0]) {
+        final boolean leftMousePush = Globals.buttons[0];
+        if(leftMousePush) {
             Point target = new Point(Globals.mousePos);
             Point2D.Double pos = new Point2D.Double((this.x + 28), (this.y + 2));
             AffineTransform.getRotateInstance(this.theta, this.getCenterX(), this.getCenterY()).transform(pos, pos);

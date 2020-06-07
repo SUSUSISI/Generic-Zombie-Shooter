@@ -16,6 +16,7 @@
  **/
 package genericzombieshooter.misc;
 
+import genericzombieshooter.misc.progress.Progress;
 import genericzombieshooter.structures.GameTime;
 import genericzombieshooter.structures.Message;
 import genericzombieshooter.structures.weapons.AssaultRifle;
@@ -28,8 +29,10 @@ import genericzombieshooter.structures.weapons.LaserWire;
 import genericzombieshooter.structures.weapons.Shotgun;
 import genericzombieshooter.structures.weapons.Teleporter;
 import genericzombieshooter.structures.weapons.TurretWeapon;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.Point;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -67,30 +70,23 @@ public class Globals {
     public static final int ZOMBIE_BOSS_STITCHES_TYPE = 9;
     
     // Game-State Related
+    public static Thread mainThread;
     public static Runnable animation; // The primary animation thread.
-    public static GameTime gameTime; // Used to keep track of the time.
+    public static GameTime gameTime = new GameTime(); // Used to keep track of the time.
     
-    public static boolean running; // Whether or not the game is currently running.
-    public static boolean started;
-    public static boolean crashed; // Tells the game whether or not there was a crash.
-    public static boolean paused;
-    public static boolean storeOpen;
-    public static boolean levelScreenOpen;
-    public static boolean deathScreen;
-    public static boolean waveInProgress; // Whether the player is fighting or waiting for another wave.
+    
+
+
+   
+    
+    
+    
     public static long nextWave;
+    public static Progress progress = new Progress();
     
     public static void resetState() {
-    	gameTime = new GameTime();
-        
-    	//running = false;
-    	started = false;
-    	crashed = false;
-        paused = false;
-        storeOpen = false;
-        levelScreenOpen = false;
-        deathScreen = false;
-        waveInProgress = false;
+    	gameTime.reset();
+        progress.reset();
         nextWave = Globals.gameTime.getElapsedMillis() + 3000;
     }
     
@@ -99,19 +95,40 @@ public class Globals {
     public static boolean [] buttons; // The state of the game mouse button controls.
     public static Point mousePos; // The current position of the mouse on the screen.
     
-    // Static Weapons
-    public static Handgun HANDGUN = new Handgun();
-    public static AssaultRifle ASSAULT_RIFLE = new AssaultRifle();
-    public static Shotgun SHOTGUN = new Shotgun();
-    public static Flamethrower FLAMETHROWER = new Flamethrower();
-    public static Grenade GRENADE = new Grenade();
-    public static Landmine LANDMINE = new Landmine();
-    public static Flare FLARE = new Flare();
-    public static LaserWire LASERWIRE = new LaserWire();
-    public static TurretWeapon TURRETWEAPON = new TurretWeapon();
-    public static Teleporter TELEPORTER = new Teleporter();
+    public static void resetInput() {
+    	Globals.keys = new boolean[4];
+        for (boolean k : Globals.keys) k = false;
+        Globals.buttons = new boolean[2];
+        for (boolean b : Globals.buttons) b = false;
+
+        Globals.mousePos = new Point(0, 0);
+    }
     
-    public static Weapon getWeaponByName(String name) {
+    
+    // Static Weapons
+    public static Handgun HANDGUN = new Handgun("Popgun", KeyEvent.VK_1, "/resources/images/GZS_Popgun.png", 
+            0, 0, 0, 10, false);
+    public static AssaultRifle ASSAULT_RIFLE = new AssaultRifle("RTPS", KeyEvent.VK_2, "/resources/images/GZS_RTPS.png", 
+            60, 300, 1, 
+            10, true);
+    public static Shotgun SHOTGUN = new Shotgun("Boomstick", KeyEvent.VK_3, "/resources/images/GZS_Boomstick.png", 
+            24, 64, 1, 40, false);
+    public static Flamethrower FLAMETHROWER = new Flamethrower("The Flammenwerfer", KeyEvent.VK_4, "/resources/images/GZS_Flammenwerfer.png", 
+            100, 300, 1, 0, true);
+    public static Grenade GRENADE = new Grenade("Hand Egg", KeyEvent.VK_5, "/resources/images/GZS_HandEgg.png", 
+            1, 3, 1, 100, false);
+    public static Landmine LANDMINE = new Landmine("Flip-Flop", KeyEvent.VK_6, "/resources/images/GZS_FlipFlop.png",
+            1, 3, 1, 50, false);
+    public static Flare FLARE = new Flare("Shiny Stick", KeyEvent.VK_7, "/resources/images/GZS_Flare.png",
+            1, 3, 1, 100, false);
+    public static LaserWire LASERWIRE = new LaserWire("Laser Wire", KeyEvent.VK_8, "/resources/images/GZS_LaserWire.png",
+            1, 1, 1, 50, false);
+    public static TurretWeapon TURRETWEAPON = new TurretWeapon("Sentry Gun", KeyEvent.VK_9, "/resources/images/GZS_Turret.png",
+            1, 1, 1, 50, false);
+    public static Teleporter TELEPORTER = new Teleporter("Big Red Button", KeyEvent.VK_0, "/resources/images/GZS_BigRedButton.png",
+            1, 1, 1, (int)((60 * 1000) / Globals.SLEEP_TIME), false);
+    
+    public static WeaponStrategy getWeaponByName(String name) {
         if(name.equals(Globals.HANDGUN.getName())) return Globals.HANDGUN;
         else if(name.equals(Globals.ASSAULT_RIFLE.getName())) return Globals.ASSAULT_RIFLE;
         else if(name.equals(Globals.SHOTGUN.getName())) return Globals.SHOTGUN;
@@ -136,5 +153,14 @@ public class Globals {
         Globals.LASERWIRE.resetAmmo();
         Globals.TURRETWEAPON.resetAmmo();
         Globals.TELEPORTER.resetAmmo();
+    }
+    
+    public static WeaponStrategy weaponStrategy = Globals.HANDGUN;
+    
+    public static WeaponStrategy getWeaponStrategy(String name) {
+    	return getWeaponByName(name);
+    }
+    public static void setWeaponStrategy(String name) {
+    	Globals.weaponStrategy =  getWeaponByName(name);
     }
 }
