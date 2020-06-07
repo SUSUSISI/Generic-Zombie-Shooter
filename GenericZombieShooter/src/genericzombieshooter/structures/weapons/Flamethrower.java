@@ -16,25 +16,21 @@
  **/
 package genericzombieshooter.structures.weapons;
 
-import genericzombieshooter.GZSFramework;
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.actors.Zombie;
 import genericzombieshooter.misc.Globals;
 import genericzombieshooter.misc.Images;
 import genericzombieshooter.misc.Sounds;
-import genericzombieshooter.structures.LightSource;
 import genericzombieshooter.structures.Particle;
 import genericzombieshooter.structures.items.UnlimitedAmmo;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,45 +38,26 @@ import java.util.List;
  * Used to represent the Flamethrower weapon.
  * @author Darin Beaudreau
  */
-public class Flamethrower implements WeaponStrategy {
+public class Flamethrower extends Weapon {
     // Final Variables
     private static final int WEAPON_PRICE = 3000;
     private static final int AMMO_PRICE = 500;
     private static final int DEFAULT_AMMO = 100;
+    private static final int MAX_AMMO = 300;
+    private static final int AMMO_PER_USE = 1;
     private static final int PARTICLES_PER_USE = 8;
     private static final int DAMAGE_PER_PARTICLE = 3;
     private static final double PARTICLE_SPREAD = 15.0;
     private static final int PARTICLE_LIFE_MIN = 1000;
     private static final int PARTICLE_LIFE_MAX = 1400;
     
-    private String name;
-    private int key;
-    private BufferedImage image;
-    protected int ammoLeft;
-    private int maxAmmo;
-    private int ammoPerUse;
-    private boolean automatic; // Indicates if the weapon can be fired continuously.
-    protected boolean fired; // Used with automatic to determine if the weapon needs to be fired again.
-    private int cooldown;
-    private int coolPeriod;
-    protected List<Particle> particles;
+    private GunUpdateStrategy gunUpdateStrategy = new GunUpdateStrategy();
+    private GunDrawAmmoStrategy gunDrawAmmoStrategy = new GunDrawAmmoStrategy();
+    private GunCheckDamageStrategy gunCheckDamageStrategy = new GunCheckDamageStrategy();
     
-    public Flamethrower(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
-    	this.name = name;
-        this.key = key;
-        
-        this.image = GZSFramework.loadImage(filename);
-        
-        this.ammoLeft = ammoLeft;
-        this.maxAmmo = maxAmmo;
-        this.ammoPerUse = ammoPerUse;
-        
-        this.automatic = automatic;
-        this.fired = false;
-        this.cooldown = cooldown;
-        this.coolPeriod = cooldown;
-        
-        this.particles = Collections.synchronizedList(new ArrayList<Particle>());
+    public Flamethrower() {
+        super("The Flammenwerfer", KeyEvent.VK_4, "/resources/images/GZS_Flammenwerfer.png", 
+              Flamethrower.DEFAULT_AMMO, Flamethrower.MAX_AMMO, Flamethrower.AMMO_PER_USE, 0, true);
     }
     
     @Override
@@ -96,42 +73,21 @@ public class Flamethrower implements WeaponStrategy {
     
     @Override
     public void resetAmmo() {
-    	synchronized(this.particles) { this.particles.clear(); }
+        super.resetAmmo();
         this.ammoLeft = Flamethrower.DEFAULT_AMMO;
     }
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        // Update all particles and remove them if their life has expired or they are out of bounds.
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    particle.update();
-                    if(!particle.isAlive() || particle.outOfBounds()) {
-                        particleIterator.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
+    	this.setUpdateStrategy(gunUpdateStrategy);
+    	this.updateStrategy.updateWeawpon(this.particles);
+    	this.cool();
     }
     
     @Override
     public void drawAmmo(Graphics2D g2d) {
-        // Draw all particles whose life has not yet expired.
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                g2d.setColor(Color.ORANGE);
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    if(particle.isAlive()) particle.draw(g2d);
-                }
-            }
-        }
+    	this.setDrawAmmoStrategy(gunDrawAmmoStrategy);
+        this.drawAmmoStrategy.drawAmmo(g2d, this.particles, Color.ORANGE);
     }
     
     @Override
@@ -178,111 +134,7 @@ public class Flamethrower implements WeaponStrategy {
     
     @Override
     public int checkForDamage(Rectangle2D.Double rect) {
-        synchronized(this.particles) {
-            int damage = 0;
-            if(!this.particles.isEmpty()) {
-                // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    // If the particle is still alive and has collided with the target.
-                    if(particle.isAlive() && particle.checkCollision(rect)) {
-                        // Add the damage of the particle and remove it from the list.
-                        damage += Flamethrower.DAMAGE_PER_PARTICLE;
-                        particleIterator.remove();
-                    }
-                }
-            }
-            return damage;
-        }
+    	this.setCheckDamageStrategy(gunCheckDamageStrategy);
+        return this.gunCheckDamageStrategy.gunCheckForDamage(rect, this.particles, DAMAGE_PER_PARTICLE);
     }
-
-    @Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
-	public int getKey() {
-		return this.key;
-	}
-
-	@Override
-	public BufferedImage getImage() {
-		return this.image;
-	}
-
-	@Override
-	public int getAmmoLeft() {
-		return this.ammoLeft;
-	}
-
-	@Override
-	public int getMaxAmmo() {
-		return this.maxAmmo;
-	}
-
-	@Override
-	public boolean isAutomatic() {
-		return this.automatic;
-	}
-
-	@Override
-	public boolean hasFired() {
-		return this.fired;
-	}
-
-	@Override
-	public void resetFire() {
-		this.fired = false;
-	}
-
-	@Override
-	public double getCooldownPercentage() {
-		return ((double)cooldown / (double)coolPeriod);
-	}
-
-	@Override
-	public void resetCooldown() {
-		this.cooldown = this.coolPeriod;		
-	}
-
-	@Override
-	public void cool() {
-		if(this.cooldown > 0) this.cooldown--;
-	}
-
-	@Override
-	public boolean canFire() {
-		boolean isAmmoLeft = (this.ammoLeft >= this.ammoPerUse);
-        boolean isCoolDown = (this.cooldown != 0);
-        boolean canFire = this.automatic || (!this.automatic && !this.fired);
-        return (isAmmoLeft) && (!isCoolDown) && (canFire); 
-	}
-
-	@Override
-	public boolean ammoFull() {
-		return this.ammoLeft == this.maxAmmo;
-	}
-
-	@Override
-	public void addAmmo(int amount) {
-		if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
-        else this.ammoLeft += amount;
-	}
-
-	@Override
-	public void consumeAmmo() {
-		this.ammoLeft -= this.ammoPerUse;
-	}
-
-	@Override
-	public List<Particle> getParticles() {
-		return this.particles;
-	}
-
-	@Override
-	public List<LightSource> getLights() {
-		return null;
-	}
 }

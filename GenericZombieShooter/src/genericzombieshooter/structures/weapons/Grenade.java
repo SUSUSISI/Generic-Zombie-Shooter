@@ -62,6 +62,7 @@ public class Grenade implements WeaponStrategy {
     protected List<Particle> particles;
     private List<Explosion> explosions;
     public List<Explosion> getExplosions() { return this.explosions; }
+    private ExplosionCheckDamageStrategy explosionCheckDamageStrategy = new ExplosionCheckDamageStrategy();
     
     public Grenade(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
     	this.name = name;
@@ -200,23 +201,8 @@ public class Grenade implements WeaponStrategy {
     
     @Override
     public int checkForDamage(Rectangle2D.Double rect) {
-        synchronized(this.explosions) {
-            /* The grenade particle itself does nothing. Upon contact with a zombie,
-               it stops moving, and once its timer goes off, it explodes. */
-            int damage = 0;
-            if(!this.explosions.isEmpty()) {
-                Iterator<Explosion> explosionIterator = this.explosions.iterator();
-                while(explosionIterator.hasNext()) {
-                    Explosion explosion = explosionIterator.next();
-                    if(explosion.getImage().isActive()) {
-                        Rectangle2D.Double expRect = new Rectangle2D.Double((explosion.x - (explosion.getSize().width / 2)), (explosion.y - (explosion.getSize().height / 2)),
-                                                                             explosion.getSize().width, explosion.getSize().height);
-                        if(rect.intersects(expRect)) damage += Grenade.DAMAGE_PER_EXPLOSION;
-                    }
-                }
-            }
-            return damage;
-        }
+    	this.setCheckDamageStrategy(explosionCheckDamageStrategy);
+        return this.explosionCheckDamageStrategy.explosionCheckForDamage(rect, this.explosions, DAMAGE_PER_EXPLOSION);
     }
     @Override
 	public String getName() {

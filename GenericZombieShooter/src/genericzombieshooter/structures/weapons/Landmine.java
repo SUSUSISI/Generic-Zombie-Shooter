@@ -60,6 +60,7 @@ public class Landmine implements WeaponStrategy {
     private int coolPeriod;
     protected List<Particle> particles;
     private List<Explosion> explosions;
+    private ExplosionCheckDamageStrategy explosionCheckDamageStrategy = new ExplosionCheckDamageStrategy();
     
     public Landmine(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
     	this.name = name;
@@ -112,8 +113,8 @@ public class Landmine implements WeaponStrategy {
                         Zombie zombie = zombieIterator.next();
                         double width = zombie.getImage().getWidth();
                         double height = zombie.getImage().getHeight();
-                        Rectangle2D.Double rect = new Rectangle2D.Double((zombie.x - (width / 2)), (zombie.y - (height / 2)), width, height);
-                        if(particle.checkCollision(rect)) collision = true;
+                        Rectangle2D.Double zombieRectangle = new Rectangle2D.Double((zombie.x - (width / 2)), (zombie.y - (height / 2)), width, height);
+                        if(particle.checkCollision(zombieRectangle)) collision = true;
                     }
                     if(!particle.isAlive() || collision) {
                         this.explosions.add(new Explosion(Images.EXPLOSION_SHEET, particle.getPos()));
@@ -197,23 +198,8 @@ public class Landmine implements WeaponStrategy {
     
     @Override
     public int checkForDamage(Rectangle2D.Double rect) {
-        synchronized(this.explosions) {
-            int damage = 0;
-            if(!this.explosions.isEmpty()) {
-                Iterator<Explosion> explosionIterator = this.explosions.iterator();
-                while(explosionIterator.hasNext()) {
-                    Explosion explosion = explosionIterator.next();
-                    if(explosion.getImage().isActive()) {
-                        Rectangle2D.Double explosionRectangle = new Rectangle2D.Double((explosion.x - (explosion.getSize().width / 2)), (explosion.y - (explosion.getSize().height / 2)),
-                                                                             explosion.getSize().width, explosion.getSize().height);
-                        if(rect.intersects(explosionRectangle)) {
-                            damage += Landmine.DAMAGE_PER_EXPLOSION;
-                        }
-                    }
-                }
-            }
-            return damage;
-        }
+    	this.setCheckDamageStrategy(explosionCheckDamageStrategy);
+        return this.explosionCheckDamageStrategy.explosionCheckForDamage(rect, this.explosions, DAMAGE_PER_EXPLOSION);
     }
     
     @Override
