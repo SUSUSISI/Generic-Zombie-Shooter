@@ -1,16 +1,13 @@
 /**
     This file is part of Generic Zombie Shooter.
-
     Generic Zombie Shooter is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     Generic Zombie Shooter is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with Generic Zombie Shooter.  If not, see <http://www.gnu.org/licenses/>.
  **/
@@ -21,8 +18,7 @@ import genericzombieshooter.actors.Player;
 import genericzombieshooter.misc.Globals;
 import genericzombieshooter.misc.Images;
 import genericzombieshooter.misc.Sounds;
-import genericzombieshooter.structures.weapons.WeaponStrategy;
-
+import genericzombieshooter.structures.weapons.Weapon;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -85,7 +81,7 @@ public class StoreWindow {
         } // End adding weapons to icons map.
     }
     
-    private void createWeaponFrame(WeaponStrategy w, Rectangle2D.Double rect) {
+    private void createWeaponFrame(Weapon w, Rectangle2D.Double rect) {
         Rectangle2D.Double purchase = new Rectangle2D.Double((rect.x + 10), 
                         ((rect.y + rect.height) - (StoreWindow.ITEM_BUTTON_HEIGHT + 10)), 
                         StoreWindow.ITEM_BUTTON_WIDTH, StoreWindow.ITEM_BUTTON_HEIGHT);
@@ -111,7 +107,7 @@ public class StoreWindow {
         this.drawWeaponFrame(g2d, player, Globals.TELEPORTER, Globals.TELEPORTER.getImage());
     }
     
-    private void drawWeaponFrame(Graphics2D g2d, Player player, WeaponStrategy w, BufferedImage brbt) {
+    private void drawWeaponFrame(Graphics2D g2d, Player player, Weapon w, BufferedImage brbt) {
         FontMetrics metrics = g2d.getFontMetrics();
         
         int x = (int)(this.weaponFrames.get(w.getName()).get(0).x + 18);
@@ -160,7 +156,7 @@ public class StoreWindow {
                 // Check if player already has the weapon.
                 if(!player.hasWeapon(pair.getKey())) {
                     // If not, check if the player has enough cash to buy it.
-                    WeaponStrategy w = Globals.getWeaponByName(pair.getKey());
+                    Weapon w = Globals.getWeaponByName(pair.getKey());
                     if(w != null) {
                         if(player.getCash() >= w.getWeaponPrice()) {
                             /* Deduct the cash amount from the player's total
@@ -176,7 +172,7 @@ public class StoreWindow {
                 // Check if player has enough money to purchase the weapon's ammo.
                 if(player.hasWeapon(pair.getKey())) {
                     // If so, check if the player has enough money to buy the ammo.
-                    WeaponStrategy w = Globals.getWeaponByName(pair.getKey());
+                    Weapon w = Globals.getWeaponByName(pair.getKey());
                     if(w != null) {
                         // If the selected weapon's ammo stock is not already full...
                         if(!w.ammoFull()) {
