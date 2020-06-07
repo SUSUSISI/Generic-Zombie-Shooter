@@ -314,7 +314,6 @@ public class GZSFramework {
     	                else
     	                	Globals.progress.pause();
                 		break;
-                	// �� Pause ���¿��� ���, ����â ��Ѿ�µ� Ȥ�� ������� ��Ѿ�� �ٲ� ��.
                 	case KeyEvent.VK_B : Globals.progress.setScreen(Screen.store); break;
                 	case KeyEvent.VK_T : Globals.progress.setScreen(Screen.level); break;
                 }
@@ -330,7 +329,7 @@ public class GZSFramework {
                 }
                 if (key == Globals.SHOTGUN.getKey()) {
                     int r = player.setWeapon(Globals.SHOTGUN.getName());
-                    if(r == 1) loadout.setCurrentWeapon());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.FLAMETHROWER.getKey()) {
                     int r = player.setWeapon(Globals.FLAMETHROWER.getName());
