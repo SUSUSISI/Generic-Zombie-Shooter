@@ -31,7 +31,7 @@ import java.util.List;
  * Used to represent the various types of zombies.
  * @author Darin Beaudreau
  */
-public class Zombie extends Point2D.Double {
+public abstract class Zombie extends Point2D.Double {
     // Member variables.
     private AffineTransform af;
     private Animation img;
@@ -116,10 +116,21 @@ public class Zombie extends Point2D.Double {
         this.img.draw((Graphics2D)g2d);
     }
     
-    public void moan(Player player) {
-        // To be overridden.
+    public final void moan(Player player) {
+    	if(!this.moaned) {
+            if(Globals.gameTime.getElapsedMillis() >= this.nextMoan) {
+                double xD = player.getCenterX() - this.x;
+                double yD = player.getCenterY() - this.y;
+                double dist = Math.sqrt((xD * xD) + (yD * yD));
+                double gain = 1.0 - (dist / Player.AUDIO_RANGE);
+                soundMoan(gain);
+                this.moaned = true;
+            }
+        }
     }
     
+    protected abstract void soundMoan(double gain);
+
     public List<Particle> getParticles() {
         // To be overridden.
         return null;

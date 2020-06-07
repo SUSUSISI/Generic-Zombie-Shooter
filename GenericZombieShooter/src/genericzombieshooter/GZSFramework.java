@@ -31,7 +31,8 @@ import genericzombieshooter.structures.components.LevelScreen;
 import genericzombieshooter.structures.components.StoreWindow;
 import genericzombieshooter.structures.components.WeaponsLoadout;
 import genericzombieshooter.structures.items.NightVision;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
@@ -80,7 +81,7 @@ public class GZSFramework {
     	player.resetStatistics();
     	wave = new ZombieWave(currentWave);
     	levelScreen.resetLevels();
-    	loadout.setCurrentWeapon(Globals.HANDGUN.getName());
+    	loadout.setCurrentWeapon();
     }
     
     private void resetGame() {
@@ -237,9 +238,9 @@ public class GZSFramework {
     
     private void weaponUpdate() {
         { // Begin weapon updates.
-            Iterator<Weapon> it = this.player.getWeaponsMap().values().iterator();
+            Iterator<WeaponStrategy> it = this.player.getWeaponsMap().values().iterator();
             while(it.hasNext()) {
-                Weapon w = it.next();
+            	WeaponStrategy w = it.next();
                 w.updateWeapon(this.wave.getZombies());
             }
         } // End weapon updates.    	
@@ -284,6 +285,7 @@ public class GZSFramework {
                         Globals.progress.setScreen(Screen.field);
                         Globals.gameTime.reset();
                 }
+
 			}
     	});
     	canvasListenerManager.setListener(Screen.field, new CanvasListener() {
@@ -312,50 +314,51 @@ public class GZSFramework {
     	                else
     	                	Globals.progress.pause();
                 		break;
-                	// ¿ø·¡ Pause »óÅÂ¿¡¼­ »óÁ¡, ·¹º§Ã¢ ¸ø³Ñ¾î°¡´Âµ¥ È¤½Ã ¹®Á¦»ý±â¸é ¸ø³Ñ¾î°¡°Ô ¹Ù²Ü °Í.
+                	// ï¿½ï¿½ Pause ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Ã¢ ï¿½ï¿½Ñ¾î°¡ï¿½Âµï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ñ¾î°¡ï¿½ï¿½ ï¿½Ù²ï¿½ ï¿½ï¿½.
                 	case KeyEvent.VK_B : Globals.progress.setScreen(Screen.store); break;
                 	case KeyEvent.VK_T : Globals.progress.setScreen(Screen.level); break;
                 }
                 
                 if (key == Globals.HANDGUN.getKey()) {
                     int r = player.setWeapon(Globals.HANDGUN.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.HANDGUN.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.ASSAULT_RIFLE.getKey()) {
                     int r = player.setWeapon(Globals.ASSAULT_RIFLE.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.ASSAULT_RIFLE.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
+
                 }
                 if (key == Globals.SHOTGUN.getKey()) {
                     int r = player.setWeapon(Globals.SHOTGUN.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.SHOTGUN.getName());
+                    if(r == 1) loadout.setCurrentWeapon());
                 }
                 if (key == Globals.FLAMETHROWER.getKey()) {
                     int r = player.setWeapon(Globals.FLAMETHROWER.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.FLAMETHROWER.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.GRENADE.getKey()) {
                     int r = player.setWeapon(Globals.GRENADE.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.GRENADE.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.LANDMINE.getKey()) {
                     int r = player.setWeapon(Globals.LANDMINE.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.LANDMINE.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.FLARE.getKey()) {
                     int r = player.setWeapon(Globals.FLARE.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.FLARE.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.LASERWIRE.getKey()) {
                     int r = player.setWeapon(Globals.LASERWIRE.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.LASERWIRE.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.TURRETWEAPON.getKey()) {
                     int r = player.setWeapon(Globals.TURRETWEAPON.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.TURRETWEAPON.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 if (key == Globals.TELEPORTER.getKey()) {
                     int r = player.setWeapon(Globals.TELEPORTER.getName());
-                    if(r == 1) loadout.setCurrentWeapon(Globals.TELEPORTER.getName());
+                    if(r == 1) loadout.setCurrentWeapon();
                 }
                 
                 	
@@ -376,9 +379,9 @@ public class GZSFramework {
                     }
                     
                     // Reset non-automatic weapons.
-                    Iterator<Weapon> it = player.getWeaponsMap().values().iterator();
+                    Iterator<WeaponStrategy> it = player.getWeaponsMap().values().iterator();
                     while(it.hasNext()) {
-                        Weapon w = it.next();
+                        WeaponStrategy w = it.next();
                         if(!w.isAutomatic() && w.hasFired()) w.resetFire(); 
                     }
                 }
@@ -412,7 +415,7 @@ public class GZSFramework {
                             }
                         }
                         player.setWeapon(name);
-                        loadout.setCurrentWeapon(name);
+                        loadout.setCurrentWeapon();
                     } else { // Wheel scrolled down.
                         // Move weapon selection to the left.
                         String name = Globals.HANDGUN.getName();
@@ -438,7 +441,7 @@ public class GZSFramework {
                             }
                         }
                         player.setWeapon(name);
-                        loadout.setCurrentWeapon(name);
+                        loadout.setCurrentWeapon();
                     }
                 }
 			}

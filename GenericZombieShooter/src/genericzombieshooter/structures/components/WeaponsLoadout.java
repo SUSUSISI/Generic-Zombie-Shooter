@@ -18,7 +18,8 @@ package genericzombieshooter.structures.components;
 
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.misc.Globals;
-import genericzombieshooter.structures.weapons.Weapon;
+import genericzombieshooter.structures.weapons.WeaponStrategy;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -44,7 +45,7 @@ public class WeaponsLoadout {
             Globals.TURRETWEAPON.getName(), Globals.TELEPORTER.getName()};
     
     private String currentWeaponName;
-    public void setCurrentWeapon(String name) { this.currentWeaponName = name; }
+    public void setCurrentWeapon() { this.currentWeaponName = Globals.weaponStrategy.getName(); }
     
     public WeaponsLoadout(Player p) {
         this.player = p;
@@ -85,7 +86,7 @@ public class WeaponsLoadout {
         
         { // Draw Weapon Icon
             if(player.hasWeapon(weaponNames[position])) {
-                Weapon weapon = player.getWeapon(weaponNames[position]);
+                WeaponStrategy weapon = player.getWeapon(weaponNames[position]);
                 BufferedImage image = weapon.getImage();
                 g2d.drawImage(image, (int)x, (int)y, null);
                 
