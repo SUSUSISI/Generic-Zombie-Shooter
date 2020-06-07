@@ -51,6 +51,10 @@ public class Flamethrower extends Weapon {
     private static final int PARTICLE_LIFE_MIN = 1000;
     private static final int PARTICLE_LIFE_MAX = 1400;
     
+    private GunUpdateStrategy gunUpdateStrategy = new GunUpdateStrategy();
+    private GunDrawAmmoStrategy gunDrawAmmoStrategy = new GunDrawAmmoStrategy();
+    private GunCheckDamageStrategy gunCheckDamageStrategy = new GunCheckDamageStrategy();
+    
     public Flamethrower() {
         super("The Flammenwerfer", KeyEvent.VK_4, "/resources/images/GZS_Flammenwerfer.png", 
               Flamethrower.DEFAULT_AMMO, Flamethrower.MAX_AMMO, Flamethrower.AMMO_PER_USE, 0, true);
@@ -75,36 +79,15 @@ public class Flamethrower extends Weapon {
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        // Update all particles and remove them if their life has expired or they are out of bounds.
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    particle.update();
-                    if(!particle.isAlive() || particle.outOfBounds()) {
-                        particleIterator.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
+    	this.setUpdateStrategy(gunUpdateStrategy);
+    	this.updateStrategy.updateWeawpon(this.particles);
+    	this.cool();
     }
     
     @Override
     public void drawAmmo(Graphics2D g2d) {
-        // Draw all particles whose life has not yet expired.
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                g2d.setColor(Color.ORANGE);
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    if(particle.isAlive()) particle.draw(g2d);
-                }
-            }
-        }
+    	this.setDrawAmmoStrategy(gunDrawAmmoStrategy);
+        this.drawAmmoStrategy.drawAmmo(g2d, this.particles, Color.ORANGE);
     }
     
     @Override
@@ -151,22 +134,7 @@ public class Flamethrower extends Weapon {
     
     @Override
     public int checkForDamage(Rectangle2D.Double rect) {
-        synchronized(this.particles) {
-            int damage = 0;
-            if(!this.particles.isEmpty()) {
-                // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    // If the particle is still alive and has collided with the target.
-                    if(particle.isAlive() && particle.checkCollision(rect)) {
-                        // Add the damage of the particle and remove it from the list.
-                        damage += Flamethrower.DAMAGE_PER_PARTICLE;
-                        particleIterator.remove();
-                    }
-                }
-            }
-            return damage;
-        }
+    	this.setCheckDamageStrategy(gunCheckDamageStrategy);
+        return this.gunCheckDamageStrategy.gunCheckForDamage(rect, this.particles, DAMAGE_PER_PARTICLE);
     }
 }
