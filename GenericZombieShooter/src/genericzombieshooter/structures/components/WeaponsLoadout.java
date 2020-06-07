@@ -1,16 +1,13 @@
 /**
     This file is part of Generic Zombie Shooter.
-
     Generic Zombie Shooter is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     Generic Zombie Shooter is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with Generic Zombie Shooter.  If not, see <http://www.gnu.org/licenses/>.
  **/
@@ -18,15 +15,13 @@ package genericzombieshooter.structures.components;
 
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.misc.Globals;
-import genericzombieshooter.structures.weapons.WeaponStrategy;
-
+import genericzombieshooter.structures.weapons.Weapon;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
 
 /**
  * Used to draw the weapons loadout GUI component to the screen.
@@ -45,7 +40,7 @@ public class WeaponsLoadout {
             Globals.TURRETWEAPON.getName(), Globals.TELEPORTER.getName()};
     
     private String currentWeaponName;
-    public void setCurrentWeapon() { this.currentWeaponName = Globals.weaponStrategy.getName(); }
+    public void setCurrentWeapon(String name) { this.currentWeaponName = name; }
     
     public WeaponsLoadout(Player p) {
         this.player = p;
@@ -86,7 +81,7 @@ public class WeaponsLoadout {
         
         { // Draw Weapon Icon
             if(player.hasWeapon(weaponNames[position])) {
-                WeaponStrategy weapon = player.getWeapon(weaponNames[position]);
+                Weapon weapon = player.getWeapon(weaponNames[position]);
                 BufferedImage image = weapon.getImage();
                 g2d.drawImage(image, (int)x, (int)y, null);
                 
