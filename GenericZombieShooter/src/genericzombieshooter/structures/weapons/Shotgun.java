@@ -47,6 +47,10 @@ public class Shotgun extends Weapon {
     private static final double PARTICLE_SPREAD = 20.0;
     private static final int PARTICLE_LIFE = 1000;
     
+    private GunUpdateStrategy gunUpdateStrategy = new GunUpdateStrategy();
+    private GunDrawAmmoStrategy gunDrawAmmoStrategy = new GunDrawAmmoStrategy();
+    private GunCheckDamageStrategy gunCheckDamageStrategy = new GunCheckDamageStrategy();
+    
     public Shotgun() {
         super("Boomstick", KeyEvent.VK_3, "/resources/images/GZS_Boomstick.png", 
               Shotgun.DEFAULT_AMMO, Shotgun.MAX_AMMO, Shotgun.AMMO_PER_USE, 40, false);
@@ -71,22 +75,15 @@ public class Shotgun extends Weapon {
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        this.updateGunParticles();
+    	this.setUpdateStrategy(gunUpdateStrategy);
+    	this.updateStrategy.updateWeawpon(this.particles);
+    	this.cool();
     }
     
     @Override
     public void drawAmmo(Graphics2D g2d) {
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                // Draw all particles whose life has not yet expired.
-                g2d.setColor(Color.YELLOW);
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    if(particle.isAlive()) particle.draw(g2d);
-                }
-            }
-        }
+    	this.setDrawAmmoStrategy(gunDrawAmmoStrategy);
+        this.drawAmmoStrategy.drawAmmo(g2d, this.particles, Color.YELLOW);
     }
     
     @Override
@@ -112,22 +109,7 @@ public class Shotgun extends Weapon {
     
     @Override
     public int checkForDamage(Rectangle2D.Double rect) {
-        synchronized(this.particles) {
-            int damage = 0;
-            if(!this.particles.isEmpty()) {
-                // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    // If the particle is still alive and has collided with the target.
-                    if(particle.isAlive() && particle.checkCollision(rect)) {
-                        // Add the damage of the particle and remove it from the list.
-                        damage += Shotgun.DAMAGE_PER_PARTICLE;
-                        particleIterator.remove();
-                    }
-                }
-            }
-            return damage;
-        }
+    	this.setCheckDamageStrategy(gunCheckDamageStrategy);
+        return this.gunCheckDamageStrategy.gunCheckForDamage(rect, this.particles, DAMAGE_PER_PARTICLE);
     }
 }

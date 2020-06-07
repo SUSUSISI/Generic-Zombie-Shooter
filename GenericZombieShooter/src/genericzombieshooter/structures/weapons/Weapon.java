@@ -46,6 +46,21 @@ public abstract class Weapon {
     private int cooldown;
     private int coolPeriod;
     protected List<Particle> particles;
+    protected CheckDamageStrategy checkDamageStrategy;
+    protected DrawAmmoStrategy drawAmmoStrategy;
+    protected UpdateStrategy updateStrategy;
+    
+    public void setCheckDamageStrategy(CheckDamageStrategy checkDamageStrategy) {
+    	this.checkDamageStrategy = checkDamageStrategy;
+    }
+    
+    public void setDrawAmmoStrategy(DrawAmmoStrategy drawAmmoStrategy) {
+    	this.drawAmmoStrategy = drawAmmoStrategy;
+    }
+    
+    public void setUpdateStrategy(UpdateStrategy updateStrategy) {
+    	this.updateStrategy = updateStrategy;
+    }
     
     public Weapon(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
         this.name = name;
