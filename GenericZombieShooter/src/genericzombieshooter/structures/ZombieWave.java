@@ -18,7 +18,7 @@ import genericzombieshooter.structures.items.Invulnerability;
 import genericzombieshooter.structures.items.NightVision;
 import genericzombieshooter.structures.items.SpeedUp;
 import genericzombieshooter.structures.items.UnlimitedAmmo;
-import genericzombieshooter.structures.weapons.WeaponStrategy;
+import genericzombieshooter.structures.weapons.Weapon;
 
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -87,35 +87,32 @@ public class ZombieWave {
                 Point2D.Double p_ = new Point2D.Double(x, y);
 
                 if(specialsSpawned >= specialsThisWave) difficulty = 2;
+                
                 int zombieType = Globals.r.nextInt(difficulty) + 1;
-                if(zombieType == Globals.ZOMBIE_REGULAR_TYPE) {
-                    // Zumby
-                    Animation a_ = new Animation(Images.ZOMBIE_REGULAR, 48, 48, 4, (int)p_.x, (int)p_.y, 200, 0, true);
-                    Zombie z_ = new RegularZombie(p_, 250, 1, 1, 25, 20, a_);
-                    wave.add(z_);
-                } else if(zombieType == Globals.ZOMBIE_DOG_TYPE) {
-                    // Rotdog
-                    Animation a_ = new Animation(Images.ZOMBIE_DOG, 48, 48, 4, (int)p_.x, (int)p_.y, 80, 0, true);
-                    Zombie z_ = new DogZombie(p_, 100, 1, 2, 50, 30, a_);
-                    wave.add(z_);
-                } else if(zombieType == Globals.ZOMBIE_ACID_TYPE) {
-                    // Upchuck
-                    Animation a_ = new Animation(Images.ZOMBIE_ACID, 64, 64, 4, (int)p_.x, (int)p_.y, 200, 0, true);
-                    AcidZombie z_ = new AcidZombie(p_, 300, 1, 1, 100, a_);
-                    wave.add(z_);
-                    specialsSpawned++;
-                } else if(zombieType == Globals.ZOMBIE_POISONFOG_TYPE) {
-                    // Gasbag
-                    Animation a_ = new Animation(Images.ZOMBIE_POISONFOG, 48, 48, 4, (int)p_.x, (int)p_.y, 100, 0, true);
-                    PoisonFogZombie pfz_ = new PoisonFogZombie(p_, 250, 1, 2, 200, a_);
-                    wave.add(pfz_);
-                    specialsSpawned++;
-                } else if(zombieType == Globals.ZOMBIE_MATRON_TYPE) {
-                    // Big Mama
-                    Animation a_ = new Animation(Images.ZOMBIE_MATRON, 64, 64, 4, (int)p_.x, (int)p_.y, 200, 0, true);
-                    ZombieMatron zm_ = new ZombieMatron(p_, 500, 1, 1, 350, a_);
-                    wave.add(zm_);
-                    specialsSpawned++;
+                Factory factory = null;
+                switch (zombieType) {
+                	case Globals.ZOMBIE_REGULAR_TYPE :
+                		factory = new RegularTypeZombieFactory(p_);
+                		wave.add(factory.zombie);
+                		break;
+                	case Globals.ZOMBIE_DOG_TYPE : 
+                		factory = new DogTypeZombieFactory(p_);
+                		wave.add(factory.zombie);
+                		break;
+                	case Globals.ZOMBIE_ACID_TYPE :
+                		factory = new AcidTypeZombieFactory(p_);
+                		wave.add(factory.zombie);
+                		break;
+                	case Globals.ZOMBIE_POISONFOG_TYPE :
+                		factory = new PoisonfogTypeZombieFactory(p_);
+                		wave.add(factory.zombie);
+                		specialsSpawned++;
+                		break;
+                	case Globals.ZOMBIE_MATRON_TYPE : 
+                		factory = new MatronTypeZombieFactory(p_);
+                		wave.add(factory.zombie);
+                		specialsSpawned++;
+                		break;
                 }
             }
         } else {
@@ -214,9 +211,10 @@ public class ZombieWave {
                 if(!z.isDead()) {
                     // Check for collisions with ammo, etc.
                     //Iterator<Weapon> wit = player.getAllWeapons().iterator();
-                    Iterator<WeaponStrategy> wit = player.getWeaponsMap().values().iterator();
+
+                    Iterator<Weapon> wit = player.getWeaponsMap().values().iterator();
                     while(wit.hasNext()) {
-                        WeaponStrategy w = wit.next();
+                        Weapon w = wit.next();
                         int damage = w.checkForDamage(z.getRect());
                         if(player.getDamageBonus() > 0) damage += (damage * player.getDamageBonus());
                         if(damage > 0) {

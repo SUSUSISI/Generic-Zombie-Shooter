@@ -16,19 +16,16 @@
  **/
 package genericzombieshooter.structures.weapons;
 
-import genericzombieshooter.GZSFramework;
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.actors.Zombie;
 import genericzombieshooter.misc.Images;
 import genericzombieshooter.structures.Animation;
 import genericzombieshooter.structures.LightSource;
-import genericzombieshooter.structures.Particle;
-
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D.Double;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -38,46 +35,23 @@ import java.util.List;
  * Used to create a Flare, which acts as a light source once deployed.
  * @author Darin Beaudreau
  */
-public class Flare implements WeaponStrategy {
+public class Flare extends Weapon {
     // Final Variables
     private static final int WEAPON_PRICE = 400;
     private static final int AMMO_PRICE = 200;
     private static final int DEFAULT_AMMO = 1;
+    private static final int MAX_AMMO = 3;
+    private static final int AMMO_PER_USE = 1;
     private static final int PARTICLE_LIFE = 30 * 1000;
     
     // Member Variables
-    private String name;
-    private int key;
-    private BufferedImage image;
-    protected int ammoLeft;
-    private int maxAmmo;
-    private int ammoPerUse;
-    private boolean automatic; // Indicates if the weapon can be fired continuously.
-    protected boolean fired; // Used with automatic to determine if the weapon needs to be fired again.
-    private int cooldown;
-    private int coolPeriod;
-    protected List<Particle> particles;
     private List<Animation> flares;
     private List<LightSource> lights;
     
-    public Flare(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
-    	this.name = name;
-        this.key = key;
-        
-        this.image = GZSFramework.loadImage(filename);
-        
-        this.ammoLeft = ammoLeft;
-        this.maxAmmo = maxAmmo;
-        this.ammoPerUse = ammoPerUse;
-        
-        this.automatic = automatic;
-        this.fired = false;
-        this.cooldown = cooldown;
-        this.coolPeriod = cooldown;
-        
-        this.particles = Collections.synchronizedList(new ArrayList<Particle>());
-
-    	this.flares = Collections.synchronizedList(new ArrayList<Animation>());
+    public Flare() {
+        super("Shiny Stick", KeyEvent.VK_7, "/resources/images/GZS_Flare.png",
+              Flare.DEFAULT_AMMO, Flare.MAX_AMMO, Flare.AMMO_PER_USE, 100, false);
+        this.flares = Collections.synchronizedList(new ArrayList<Animation>());
         this.lights = Collections.synchronizedList(new ArrayList<LightSource>());
     }
     
@@ -96,6 +70,9 @@ public class Flare implements WeaponStrategy {
         synchronized(this.lights) { this.lights.clear(); }
         this.ammoLeft = Flare.DEFAULT_AMMO;
     }
+    
+    @Override
+    public List<LightSource> getLights() { return this.lights; }
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
@@ -172,91 +149,4 @@ public class Flare implements WeaponStrategy {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
-	@Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
-	public int getKey() {
-		return this.key;
-	}
-
-	@Override
-	public BufferedImage getImage() {
-		return this.image;
-	}
-
-	@Override
-	public int getAmmoLeft() {
-		return this.ammoLeft;
-	}
-
-	@Override
-	public int getMaxAmmo() {
-		return this.maxAmmo;
-	}
-
-	@Override
-	public boolean isAutomatic() {
-		return this.automatic;
-	}
-
-	@Override
-	public boolean hasFired() {
-		return this.fired;
-	}
-
-	@Override
-	public void resetFire() {
-		this.fired = false;
-	}
-
-	@Override
-	public double getCooldownPercentage() {
-		return ((double)cooldown / (double)coolPeriod);
-	}
-
-	@Override
-	public void resetCooldown() {
-		this.cooldown = this.coolPeriod;		
-	}
-
-	@Override
-	public void cool() {
-		if(this.cooldown > 0) this.cooldown--;
-	}
-
-	@Override
-	public boolean canFire() {
-		boolean isAmmoLeft = (this.ammoLeft >= this.ammoPerUse);
-        boolean isCoolDown = (this.cooldown != 0);
-        boolean canFire = this.automatic || (!this.automatic && !this.fired);
-        return (isAmmoLeft) && (!isCoolDown) && (canFire); 
-	}
-
-	@Override
-	public boolean ammoFull() {
-		return this.ammoLeft == this.maxAmmo;
-	}
-
-	@Override
-	public void addAmmo(int amount) {
-		if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
-        else this.ammoLeft += amount;
-	}
-
-	@Override
-	public void consumeAmmo() {
-		this.ammoLeft -= this.ammoPerUse;
-	}
-
-	@Override
-	public List<Particle> getParticles() {
-		return this.particles;
-	}
-	
-	@Override
-    public List<LightSource> getLights() { return this.lights; }
 }

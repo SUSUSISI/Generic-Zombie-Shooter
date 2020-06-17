@@ -27,3 +27,4 @@ public class TinyZombie extends Zombie{
 		
 	}
 }
+
