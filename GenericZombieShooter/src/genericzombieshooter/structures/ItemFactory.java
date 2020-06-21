@@ -22,7 +22,6 @@ import genericzombieshooter.structures.components.WeaponsLoadout;
 import genericzombieshooter.structures.items.Ammo;
 import genericzombieshooter.structures.items.HealthPack;
 import genericzombieshooter.structures.weapons.Weapon;
-
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -50,6 +49,10 @@ public class ItemFactory {
         long currentTime = Globals.gameTime.getElapsedMillis();
         this.nextHealth = currentTime + HealthPack.SPAWN_TIME;
         this.nextAmmo = currentTime + Ammo.SPAWN_TIME;
+    }
+    
+    public void recentDroppeditem() {
+    	return this.itmesDropped.get(this.itmesDropped.size()-1);
     }
     
     public void reset() {
