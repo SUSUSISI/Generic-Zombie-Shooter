@@ -88,4 +88,22 @@ public class AssaultRifleTest {
 		assaultRifle.resetAmmo();
 		assertEquals(60, assaultRifle.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: AssaultRifle fire test. fire one bullet and check particle(bullet) is exists
+	*Input: cool(), fire()
+	*Expected:
+	*	before fire -> particle list of AssaultRifle is empty
+	*	after fire -> particle list of AssaultRifle is not empty
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 10; i++) assaultRifle.cool();
+		assertEquals(true, assaultRifle.canFire());
+		assertEquals(true, assaultRifle.getParticles().isEmpty());
+		assaultRifle.fire((double)48, pos, player);
+		assertEquals(false, assaultRifle.getParticles().isEmpty());
+	}
 }
