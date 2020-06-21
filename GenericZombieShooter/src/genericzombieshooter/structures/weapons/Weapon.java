@@ -115,24 +115,6 @@ public abstract class Weapon {
         synchronized(this.particles) { this.particles.clear(); }
     }
     
-    public void updateGunParticles() {
-    	// Update all particles and remove them if their life has expired or they are out of bounds.
-    	synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                Iterator<Particle> particleIterator = this.particles.iterator();
-                while(particleIterator.hasNext()) {
-                    Particle particle = particleIterator.next();
-                    particle.update();
-                    if(!particle.isAlive() || particle.outOfBounds()) {
-                        particleIterator.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
-    }
-    
     public List<Particle> getParticles() { return this.particles; }
     
     public List<LightSource> getLights() { return null; }
