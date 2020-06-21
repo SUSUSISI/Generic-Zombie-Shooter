@@ -156,6 +156,7 @@ public class Player extends Rectangle2D.Double {
     }
     public int getLevel() { return this.level; }
     public int getSkillPoints() { return this.skillPoints; }
+    public void setSkillPoints(int skillPoints) { this.skillPoints = skillPoints; }
     public void addKill() { this.killCount++; }
     public void takeDamage(int damage_) { this.health -= damage_; }
     public void addHealth(int amount) { 
@@ -220,7 +221,6 @@ public class Player extends Rectangle2D.Double {
 	
     public void reset() {
         this.statusEffects.clear();
-        
         if(this.lives == 0) {
             this.maxHealth = Player.DEFAULT_HEALTH;
             this.damageBonus = 0;

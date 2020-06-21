@@ -57,6 +57,10 @@ public class ZombieWave {
         this.nextZombieSpawn = Globals.gameTime.getElapsedMillis() + ZombieWave.ZOMBIE_SPAWN_TIME;
     }
     
+    public long getnextZombieSpawn() {
+    	return ZOMBIE_SPAWN_TIME;
+    }
+    
     private List<Zombie> constructWave(int currentWave) {
         List<Zombie> wave = new ArrayList<Zombie>();
         
