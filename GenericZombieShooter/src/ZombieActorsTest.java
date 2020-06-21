@@ -353,6 +353,32 @@ class ZombieActorsTest {
 		assertEquals(0.7071067811865476, zombie9.x);
 		assertEquals(0.7071067811865475, zombie9.y);
 	}
-	
+	/**
+	 * Purpose: Make sure that the zombie dies or lives when it takes moderate damage
+	 * input : takeDamage 200
+	 * 		   takeDamage 250
+	 * Expected :
+	 * 			if damage is less than health
+	 * 				return false
+	 * 			else
+	 * 				return true
+	 */
+	@Test
+	public void testIsDeadZombie() {
+    	double x = 0;
+        double y = 0;
+        
+        Point2D.Double p_ = new Point2D.Double(x, y);
+
+        Animation a = new Animation(Images.ZOMBIE_REGULAR, 48, 48, 4, (int)p_.x, (int)p_.y, 200, 0, true);
+		RegularZombie zombie = new RegularZombie(p_, 250, 1, 1, 25, 20, a);
+
+		zombie.takeDamage(200);
+		assertEquals(false,zombie.isDead());
+		
+		zombie.takeDamage(250);
+		assertEquals(true,zombie.isDead());
+		
+	}
 
 }
