@@ -16,17 +16,13 @@
  **/
 package genericzombieshooter.structures.weapons;
 
-import genericzombieshooter.GZSFramework;
 import genericzombieshooter.actors.Player;
 import genericzombieshooter.actors.Zombie;
 import genericzombieshooter.misc.Sounds;
-import genericzombieshooter.structures.LightSource;
-import genericzombieshooter.structures.Particle;
-
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -36,43 +32,22 @@ import java.util.List;
  * Used to drop turrets on the field.
  * @author Darin Beaudreau
  */
-public class TurretWeapon implements WeaponStrategy {
+public class TurretWeapon extends Weapon {
     // Final Variables
     private static final int WEAPON_PRICE = 4000;
     private static final int AMMO_PRICE = 1200;
     private static final int DEFAULT_AMMO = 1;
+    private static final int MAX_AMMO = 1;
+    private static final int AMMO_PER_USE = 1;
     private static final long TURRET_LIFE = 60 * 1000;
     
     // Member Variables
-    private String name;
-    private int key;
-    private BufferedImage image;
-    protected int ammoLeft;
-    private int maxAmmo;
-    private int ammoPerUse;
-    private boolean automatic; // Indicates if the weapon can be fired continuously.
-    protected boolean fired; // Used with automatic to determine if the weapon needs to be fired again.
-    private int cooldown;
-    private int coolPeriod;
-    protected List<Particle> particles;
     private List<Turret> turrets;
     
-    public TurretWeapon(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
-    	this.name = name;
-        this.key = key;
-        
-        this.image = GZSFramework.loadImage(filename);
-        
-        this.ammoLeft = ammoLeft;
-        this.maxAmmo = maxAmmo;
-        this.ammoPerUse = ammoPerUse;
-        
-        this.automatic = automatic;
-        this.fired = false;
-        this.cooldown = cooldown;
-        this.coolPeriod = cooldown;
-        
-        this.particles = Collections.synchronizedList(new ArrayList<Particle>());
+    public TurretWeapon() {
+        super("Sentry Gun", KeyEvent.VK_9, "/resources/images/GZS_Turret.png",
+              TurretWeapon.DEFAULT_AMMO, TurretWeapon.MAX_AMMO, TurretWeapon.AMMO_PER_USE, 
+              50, false);
         this.turrets = Collections.synchronizedList(new ArrayList<Turret>());
     }
     
@@ -98,19 +73,12 @@ public class TurretWeapon implements WeaponStrategy {
         this.ammoLeft = TurretWeapon.DEFAULT_AMMO;
     }
     
-    private boolean checkFire() {
-    	boolean isAmmoLeft = (this.ammoLeft >= this.ammoPerUse);
-        boolean isCoolDown = (this.cooldown != 0);
-        boolean canFire = this.automatic || (!this.automatic && !this.fired);
-        return (isAmmoLeft) && (!isCoolDown) && (canFire); 
-    }
-    
     @Override
     public boolean canFire() {
-        boolean ableFire = checkFire();
+        boolean superBool = super.canFire();
         boolean turretsEmpty = this.turrets.isEmpty();
         //System.out.println("SuperBool: " + superBool + ", TurretsEmpty: " + turretsEmpty);
-        return ableFire && turretsEmpty; 
+        return superBool && turretsEmpty; 
     }
     
     @Override
@@ -168,85 +136,4 @@ public class TurretWeapon implements WeaponStrategy {
         }
         return damage;
     }
-    
-    @Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
-	public int getKey() {
-		return this.key;
-	}
-
-	@Override
-	public BufferedImage getImage() {
-		return this.image;
-	}
-
-	@Override
-	public int getAmmoLeft() {
-		return this.ammoLeft;
-	}
-
-	@Override
-	public int getMaxAmmo() {
-		return this.maxAmmo;
-	}
-
-	@Override
-	public boolean isAutomatic() {
-		return this.automatic;
-	}
-
-	@Override
-	public boolean hasFired() {
-		return this.fired;
-	}
-
-	@Override
-	public void resetFire() {
-		this.fired = false;
-	}
-
-	@Override
-	public double getCooldownPercentage() {
-		return ((double)cooldown / (double)coolPeriod);
-	}
-
-	@Override
-	public void resetCooldown() {
-		this.cooldown = this.coolPeriod;		
-	}
-
-	@Override
-	public void cool() {
-		if(this.cooldown > 0) this.cooldown--;
-	}
-
-	@Override
-	public boolean ammoFull() {
-		return this.ammoLeft == this.maxAmmo;
-	}
-
-	@Override
-	public void addAmmo(int amount) {
-		if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
-        else this.ammoLeft += amount;
-	}
-
-	@Override
-	public void consumeAmmo() {
-		this.ammoLeft -= this.ammoPerUse;
-	}
-
-	@Override
-	public List<Particle> getParticles() {
-		return this.particles;
-	}
-
-	@Override
-	public List<LightSource> getLights() {
-		return null;
-	}
 }

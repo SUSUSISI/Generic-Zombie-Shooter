@@ -1,16 +1,13 @@
 /**
     This file is part of Generic Zombie Shooter.
-
     Generic Zombie Shooter is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     Generic Zombie Shooter is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with Generic Zombie Shooter.  If not, see <http://www.gnu.org/licenses/>.
  **/
@@ -27,8 +24,7 @@ import genericzombieshooter.structures.items.Invulnerability;
 import genericzombieshooter.structures.items.NightVision;
 import genericzombieshooter.structures.items.SpeedUp;
 import genericzombieshooter.structures.items.UnlimitedAmmo;
-import genericzombieshooter.structures.weapons.WeaponStrategy;
-
+import genericzombieshooter.structures.weapons.Weapon;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -83,7 +79,7 @@ public class Player extends Rectangle2D.Double {
     private long lastPoisoned;
     
     private String currentWeaponName;
-    private HashMap<String, WeaponStrategy> weaponsMap;
+    private HashMap<String, Weapon> weaponsMap;
     
     // Statistic Variables
     private long deathTime;
@@ -135,7 +131,7 @@ public class Player extends Rectangle2D.Double {
         this.medkitsUsed = 0;
         this.ammoCratesUsed = 0;
         
-        this.weaponsMap = new HashMap<String, WeaponStrategy>();
+        this.weaponsMap = new HashMap<String, Weapon>();
         this.addWeapon(Globals.HANDGUN);
         this.currentWeaponName = Globals.HANDGUN.getName();
     }
@@ -160,6 +156,7 @@ public class Player extends Rectangle2D.Double {
     }
     public int getLevel() { return this.level; }
     public int getSkillPoints() { return this.skillPoints; }
+    public void setSkillPoints(int skillPoints) { this.skillPoints = skillPoints; }
     public void addKill() { this.killCount++; }
     public void takeDamage(int damage_) { this.health -= damage_; }
     public void addHealth(int amount) { 
@@ -224,7 +221,6 @@ public class Player extends Rectangle2D.Double {
 	
     public void reset() {
         this.statusEffects.clear();
-        
         if(this.lives == 0) {
             this.maxHealth = Player.DEFAULT_HEALTH;
             this.damageBonus = 0;
@@ -238,7 +234,7 @@ public class Player extends Rectangle2D.Double {
             this.lives = 3;
             
             this.deathTime = Globals.gameTime.getElapsedMillis();
-            this.weaponsMap = new HashMap<String, WeaponStrategy>();
+            this.weaponsMap = new HashMap<String, Weapon>();
             this.weaponsMap.put(Globals.HANDGUN.getName(), Globals.HANDGUN);
         }
         else {
@@ -264,19 +260,18 @@ public class Player extends Rectangle2D.Double {
     }
     
     public boolean hasWeapon(String name) { return this.weaponsMap.containsKey(name); }
-    public WeaponStrategy getWeapon() { return this.weaponsMap.get(this.currentWeaponName); }
-    public WeaponStrategy getWeapon(String name) { return this.weaponsMap.get(name); }
+    public Weapon getWeapon() { return this.weaponsMap.get(this.currentWeaponName); }
+    public Weapon getWeapon(String name) { return this.weaponsMap.get(name); }
     public String getCurrentWeaponName() { return this.currentWeaponName; }
-    public HashMap<String, WeaponStrategy> getWeaponsMap() { return this.weaponsMap; }
+    public HashMap<String, Weapon> getWeaponsMap() { return this.weaponsMap; }
     public int setWeapon(String name) {
         if(this.weaponsMap.containsKey(name)) {
-            Globals.setWeaponStrategy(name);
-            this.currentWeaponName = Globals.weaponStrategy.getName();
+            this.currentWeaponName = name;
             Sounds.FLAMETHROWER.getAudio().stop();
             return 1;
         } else return 0;
     }
-    public void addWeapon(WeaponStrategy w) {
+    public void addWeapon(Weapon w) {
         this.weaponsMap.put(w.getName(), w);
     }
     

@@ -18,7 +18,7 @@ import genericzombieshooter.structures.items.Invulnerability;
 import genericzombieshooter.structures.items.NightVision;
 import genericzombieshooter.structures.items.SpeedUp;
 import genericzombieshooter.structures.items.UnlimitedAmmo;
-import genericzombieshooter.structures.weapons.WeaponStrategy;
+import genericzombieshooter.structures.weapons.Weapon;
 
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -92,24 +92,24 @@ public class ZombieWave {
                 Factory factory = null;
                 switch (zombieType) {
                 	case Globals.ZOMBIE_REGULAR_TYPE :
-                		factory = new RegularTypeZombieFactory(Point2D.Double p_));
+                		factory = new RegularTypeZombieFactory(p_);
                 		wave.add(factory.zombie);
                 		break;
                 	case Globals.ZOMBIE_DOG_TYPE : 
-                		factory = new DogTypeZombieFactory(Point2D.Double p_);
+                		factory = new DogTypeZombieFactory(p_);
                 		wave.add(factory.zombie);
                 		break;
                 	case Globals.ZOMBIE_ACID_TYPE :
-                		factory = new AcidTypeZombieFactory(Point2D.Double p_);
+                		factory = new AcidTypeZombieFactory(p_);
                 		wave.add(factory.zombie);
                 		break;
                 	case Globals.ZOMBIE_POISONFOG_TYPE :
-                		factory = new PoisonfogTypeZombieFactory(Point2D.Double p_);
+                		factory = new PoisonfogTypeZombieFactory(p_);
                 		wave.add(factory.zombie);
                 		specialsSpawned++;
                 		break;
                 	case Globals.ZOMBIE_MATRON_TYPE : 
-                		factory = new MatronTypeZombieFactory(Point2D.Double p_);
+                		factory = new MatronTypeZombieFactory(p_);
                 		wave.add(factory.zombie);
                 		specialsSpawned++;
                 		break;
@@ -212,9 +212,9 @@ public class ZombieWave {
                     // Check for collisions with ammo, etc.
                     //Iterator<Weapon> wit = player.getAllWeapons().iterator();
 
-                    Iterator<WeaponStrategy> wit = player.getWeaponsMap().values().iterator();
+                    Iterator<Weapon> wit = player.getWeaponsMap().values().iterator();
                     while(wit.hasNext()) {
-                        WeaponStrategy w = wit.next();
+                        Weapon w = wit.next();
                         int damage = w.checkForDamage(z.getRect());
                         if(player.getDamageBonus() > 0) damage += (damage * player.getDamageBonus());
                         if(damage > 0) {
