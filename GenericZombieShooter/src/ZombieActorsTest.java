@@ -96,6 +96,30 @@ class ZombieActorsTest {
         player.addKill();
         assertEquals(2, player.killCount);
 	}
+	/**
+	 * Purpose : decrease, reset or increase the life of the player
+	 * Input : die(), die(), die(), reset(), addLife()
+	 * Expected : 
+	 * 			Lives = 2
+	 * 			Lives = 3
+	 * 			Lives = 4
+	 */
+	@Test
+	public void testPlayerLives() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+        
+        player.die();
+        assertEquals(2, player.getLives());
+        
+        player.die();
+        player.die();
+        player.reset();
+        assertEquals(3, player.getLives());
+        
+        player.addLife();
+        assertEquals(4, player.getLives());
+	}
 	
 
 }
