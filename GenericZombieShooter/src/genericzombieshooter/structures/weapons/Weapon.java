@@ -101,6 +101,11 @@ public abstract class Weapon {
         return (isAmmoLeft) && (!isCoolDown) && (canFire); 
     }
     public boolean ammoFull() { return this.ammoLeft == this.maxAmmo; }
+    
+    public void setammoLeft(int bullet) {
+    	this.ammoLeft = bullet;
+    }
+    
     public void addAmmo(int amount) { 
         if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
         else this.ammoLeft += amount;

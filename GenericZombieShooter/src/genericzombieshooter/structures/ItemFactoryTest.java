@@ -6,10 +6,12 @@ import genericzombieshooter.structures.components.StoreWindow;
 import genericzombieshooter.structures.components.WeaponsLoadout;
 import genericzombieshooter.structures.items.Ammo;
 import genericzombieshooter.structures.items.HealthPack;
+import genericzombieshooter.structures.weapons.Weapon;
 
 import static org.junit.Assert.*;
 
 import java.awt.event.KeyEvent;
+import java.util.Iterator;
 
 import javax.swing.JFrame;
 
@@ -65,6 +67,13 @@ public class ItemFactoryTest {
 	    	itemFactory.reset();
 	    	
 	    	Globals.gameTime.setElapsedMillis(Globals.gameTime.getElapsedMillis() + Ammo.SPAWN_TIME+1);
+	    	
+	    	Iterator<Weapon> it = player.getWeaponsMap().values().iterator();
+            while(it.hasNext()) {
+                Weapon w = it.next();
+                w.setammoLeft(-1);
+            }
+            
 	    	itemFactory.update(player);
 	    	
 	    	assertEquals(itemFactory.recentDroppeditem().getId(), Ammo.ID);
