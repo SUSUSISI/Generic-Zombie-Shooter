@@ -141,6 +141,25 @@ class ZombieActorsTest {
 		player.addHealth(1000);
 		assertEquals(150, player.getHealth());
 	}
+	/**
+	 * Purpose : Add or remove the Cash of player
+	 * Input :	addCash(100), removeCash(50)
+	 * Expected :
+	 * 				player Cash = 100
+	 * 				player Cash = 50
+	 */
+	@Test
+	public void testPlayerCash() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+        
+		player.addCash(100);
+		assertEquals(100, player.getCash());
+		
+		player.removeCash(50);
+		assertEquals(50, player.getCash());
+		
+	}
 	
 
 }
