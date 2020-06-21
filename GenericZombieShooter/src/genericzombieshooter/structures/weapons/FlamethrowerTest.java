@@ -72,4 +72,20 @@ public class FlamethrowerTest {
 		flamethrower.resetAmmo();
 		assertEquals(100, flamethrower.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: Test Flamethrower can fire more than ammoLeft
+	*Input: 1 bullet
+	*Expected:
+	*	Flamethrower default ammo = 100
+	*	fire 100 times, check flamethrower whether can fired
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		assertEquals(true, flamethrower.canFire());
+		for(int i = 0; i < 100; i ++) flamethrower.fire((double)48, pos, player);
+		assertEquals(false, flamethrower.canFire());
+	}
 }
