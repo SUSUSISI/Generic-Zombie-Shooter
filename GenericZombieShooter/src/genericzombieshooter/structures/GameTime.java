@@ -29,6 +29,10 @@ public class GameTime {
     public long getOffset() { return this.offset; }
     public void increaseOffset() { this.offset = System.currentTimeMillis() - this.lastUpdate; }
     
+    
+    public setElapsedMillis(long elapsedMillis) {
+    	this.elapsedMillis = elapsedMillis;
+    }
     public GameTime() {
         reset();
     }
