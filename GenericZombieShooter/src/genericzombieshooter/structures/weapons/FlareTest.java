@@ -73,4 +73,21 @@ public class FlareTest {
 		flare.resetAmmo();
 		assertEquals(1, flare.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: Test Flare can fire more than ammoLeft 
+	*Input: 1 bullet
+	*Expected:
+	*	Flare default ammo = 1
+	*	fire 1 time, and then check Flare whether can fired
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 100; i++) flare.cool();
+		assertEquals(true, flare.canFire());
+		flare.fire((double)48, pos, player);
+		assertEquals(false, flare.canFire());
+	}
 }
