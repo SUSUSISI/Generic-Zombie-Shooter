@@ -73,4 +73,21 @@ public class LaserWireTest {
 		laserWire.resetAmmo();
 		assertEquals(1, laserWire.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: Test LaserWire can fire more than ammoLeft
+	*Input: 1 
+	*Expected:
+	*	LaserWire default ammo = 1
+	*	fire 1 time, and then check LaserWire whether can fired
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 100; i++) laserWire.cool();
+		assertEquals(true, laserWire.canFire());
+		laserWire.fire((double)48, pos, player);
+		assertEquals(false, laserWire.canFire());
+	}
 }
