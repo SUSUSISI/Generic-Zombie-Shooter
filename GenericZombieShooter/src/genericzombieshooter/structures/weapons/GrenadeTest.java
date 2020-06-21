@@ -73,4 +73,21 @@ public class GrenadeTest {
 		grenade.resetAmmo();
 		assertEquals(1, grenade.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: Test Grenade can fire more than ammoLeft
+	*Input: 1 
+	*Expected: cool(), fire()
+	*	Grenade default ammo = 1
+	*	fire 1 time, and then check Grenade whether can fired
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 100; i++) grenade.cool();
+		assertEquals(true, grenade.canFire());
+		grenade.fire((double)48, pos, player);
+		assertEquals(false, grenade.canFire());
+	}
 }
