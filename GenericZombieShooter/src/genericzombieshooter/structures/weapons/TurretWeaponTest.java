@@ -73,4 +73,21 @@ public class TurretWeaponTest {
 		turretWeapon.resetAmmo();
 		assertEquals(1, turretWeapon.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: Test TurretWeapon can fire more than ammoLeft
+	*Input: cool(), fire()
+	*Expected:
+	*	TurretWeapon default ammo = 1
+	*	fire 1 time, and then check canFire
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 50; i++) turretWeapon.cool();
+		assertEquals(true, turretWeapon.canFire());
+		turretWeapon.fire((double)48, pos, player);
+		assertEquals(false, turretWeapon.canFire());
+	}
 }
