@@ -27,64 +27,40 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Generic class to be extended for all weapons.
  * @author Darin Beaudreau
  */
-public class Weapon {
+public abstract class Weapon {
     private String name;
-    public String getName() { return this.name; }
     private int key;
-    public int getKey() { return this.key; }
     private BufferedImage image;
-    public BufferedImage getImage() { return this.image; }
-    
     protected int ammoLeft;
-    public int getAmmoLeft() { return this.ammoLeft; }
     private int maxAmmo;
-    public int getMaxAmmo() { return this.maxAmmo; }
     private int ammoPerUse;
-    
-    public int getWeaponPrice() { return 0; }
-    public int getAmmoPrice() { return 0; }
-    
     private boolean automatic; // Indicates if the weapon can be fired continuously.
-    public boolean isAutomatic() { return this.automatic; }
     protected boolean fired; // Used with automatic to determine if the weapon needs to be fired again.
-    public boolean hasFired() { return this.fired; }
-    public void resetFire() { this.fired = false; }
     private int cooldown;
     private int coolPeriod;
-    public double getCooldownPercentage() { return ((double)cooldown / (double)coolPeriod); }
-    public void resetCooldown() { this.cooldown = this.coolPeriod; }
-    public void cool() { if(this.cooldown > 0) this.cooldown--; }
-    
-    public boolean canFire() {
-        boolean a = this.ammoLeft >= this.ammoPerUse;
-        boolean b = this.cooldown == 0;
-        boolean c = this.automatic || (!this.automatic && !this.fired);
-        //System.out.println("Enough Ammo? " + a + ", Cooled? " + b + ", Automatic or Manual and Cool? " + c);
-        return (a) && (b) && (c); 
-    }
-    public boolean ammoFull() { return this.ammoLeft == this.maxAmmo; }
-    public void addAmmo(int amount) { 
-        if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
-        else this.ammoLeft += amount;
-    }
-    public int getAmmoPackAmount() {
-        // To be overridden...
-        return 0;
-    }
-    public void resetAmmo() {
-        synchronized(this.particles) { this.particles.clear(); }
-    }
-    
     protected List<Particle> particles;
-    public List<Particle> getParticles() { return this.particles; }
+    protected CheckDamageStrategy checkDamageStrategy;
+    protected DrawAmmoStrategy drawAmmoStrategy;
+    protected UpdateStrategy updateStrategy;
     
-    public List<LightSource> getLights() { return null; }
+    public void setCheckDamageStrategy(CheckDamageStrategy checkDamageStrategy) {
+    	this.checkDamageStrategy = checkDamageStrategy;
+    }
+    
+    public void setDrawAmmoStrategy(DrawAmmoStrategy drawAmmoStrategy) {
+    	this.drawAmmoStrategy = drawAmmoStrategy;
+    }
+    
+    public void setUpdateStrategy(UpdateStrategy updateStrategy) {
+    	this.updateStrategy = updateStrategy;
+    }
     
     public Weapon(String name, int key, String filename, int ammoLeft, int maxAmmo, int ammoPerUse, int cooldown, boolean automatic) {
         this.name = name;
@@ -104,22 +80,65 @@ public class Weapon {
         this.particles = Collections.synchronizedList(new ArrayList<Particle>());
     }
     
-    public void updateWeapon(List<Zombie> zombies) {
-        // To be overridden.
+    public String getName() { return this.name; }
+    public int getKey() { return this.key; }
+    public BufferedImage getImage() { return this.image; } 
+    public int getAmmoLeft() { return this.ammoLeft; }
+    public int getMaxAmmo() { return this.maxAmmo; }    
+    public abstract int getWeaponPrice();
+    public abstract int getAmmoPrice();
+    public boolean isAutomatic() { return this.automatic; }
+    public boolean hasFired() { return this.fired; }
+    public void resetFire() { this.fired = false; }
+    public double getCooldownPercentage() { return ((double)cooldown / (double)coolPeriod); }
+    public void resetCooldown() { this.cooldown = this.coolPeriod; }
+    public void cool() { if(this.cooldown > 0) this.cooldown--; }
+    
+    public boolean canFire() {
+        boolean isAmmoLeft = (this.ammoLeft >= this.ammoPerUse);
+        boolean isCoolDown = (this.cooldown != 0);
+        boolean canFire = this.automatic || (!this.automatic && !this.fired);
+        return (isAmmoLeft) && (!isCoolDown) && (canFire); 
+    }
+    public boolean ammoFull() { return this.ammoLeft == this.maxAmmo; }
+    public void addAmmo(int amount) { 
+        if((this.ammoLeft + amount) > this.maxAmmo) this.ammoLeft = this.maxAmmo;
+        else this.ammoLeft += amount;
+    }
+    public abstract int getAmmoPackAmount();
+    public void resetAmmo() {
+        synchronized(this.particles) { this.particles.clear(); }
     }
     
-    public void drawAmmo(Graphics2D g2d) {
-        // To be overridden.
+    public void updateGunParticles() {
+    	// Update all particles and remove them if their life has expired or they are out of bounds.
+    	synchronized(this.particles) {
+            if(!this.particles.isEmpty()) {
+                Iterator<Particle> particleIterator = this.particles.iterator();
+                while(particleIterator.hasNext()) {
+                    Particle particle = particleIterator.next();
+                    particle.update();
+                    if(!particle.isAlive() || particle.outOfBounds()) {
+                        particleIterator.remove();
+                        continue;
+                    }
+                }
+            }
+        }
+        this.cool();
     }
     
-    public void fire(double theta, Point2D.Double pos, Player player) {
-        // To be overridden.
-    }
+    public List<Particle> getParticles() { return this.particles; }
     
-    public int checkForDamage(Rectangle2D.Double rect) {
-        // To be overridden.
-        return 0;
-    }
+    public List<LightSource> getLights() { return null; }
+    
+    public abstract void updateWeapon(List<Zombie> zombies);
+    
+    public abstract void drawAmmo(Graphics2D g2d);
+    
+    public abstract void fire(double theta, Point2D.Double pos, Player player);
+    
+    public abstract int checkForDamage(Rectangle2D.Double rect);
     
     public void consumeAmmo() {
         this.ammoLeft -= this.ammoPerUse;

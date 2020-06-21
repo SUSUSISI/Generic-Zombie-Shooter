@@ -28,7 +28,6 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -45,6 +44,10 @@ public class Handgun extends Weapon{
     private static final int DAMAGE_PER_PARTICLE = 75;
     private static final double PARTICLE_SPREAD = 3.0;
     private static final int PARTICLE_LIFE = 1000;
+    
+    private GunUpdateStrategy gunUpdateStrategy = new GunUpdateStrategy();
+    private GunDrawAmmoStrategy gunDrawAmmoStrategy = new GunDrawAmmoStrategy();
+    private GunCheckDamageStrategy gunCheckDamageStrategy = new GunCheckDamageStrategy();
     
     public Handgun() {
         super("Popgun", KeyEvent.VK_1, "/resources/images/GZS_Popgun.png", 
@@ -70,36 +73,16 @@ public class Handgun extends Weapon{
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        // Update all particles and remove them if their life has expired or they are out of bounds.
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    p.update();
-                    if(!p.isAlive() || p.outOfBounds()) {
-                        it.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
+    	this.setUpdateStrategy(gunUpdateStrategy);
+    	this.updateStrategy.updateWeawpon(this.particles);
+    	this.cool();
     }
     
     @Override
     public void drawAmmo(Graphics2D g2d) {
         // Draw all particles whose life has not yet expired.
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                g2d.setColor(Color.ORANGE);
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    if(p.isAlive()) p.draw(g2d);
-                }
-            }
-        }
+    	this.setDrawAmmoStrategy(gunDrawAmmoStrategy);
+        this.drawAmmoStrategy.drawAmmo(g2d, this.particles, Color.ORANGE);
     }
     
     @Override
@@ -109,10 +92,10 @@ public class Handgun extends Weapon{
             // Create a new bullet and add it to the list.
             int width = 4;
             int height = 10;
-            Particle p = new Particle(theta, Handgun.PARTICLE_SPREAD, 8.0,
+            Particle particle = new Particle(theta, Handgun.PARTICLE_SPREAD, 8.0,
                           (Handgun.PARTICLE_LIFE / (int)Globals.SLEEP_TIME), new Point2D.Double(pos.x, pos.y),
                            new Dimension(width, height), Images.POPGUN_BULLET);
-            this.particles.add(p);
+            this.particles.add(particle);
             // Use up ammo.
             this.consumeAmmo();
             this.resetCooldown();
@@ -123,22 +106,7 @@ public class Handgun extends Weapon{
     
     @Override
     public int checkForDamage(Rectangle2D.Double rect) {
-        synchronized(this.particles) {
-            int damage = 0;
-            if(!this.particles.isEmpty()) {
-                // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    // If the particle is still alive and has collided with the target.
-                    if(p.isAlive() && p.checkCollision(rect)) {
-                        // Add the damage of the particle and remove it from the list.
-                        damage += Handgun.DAMAGE_PER_PARTICLE;
-                        it.remove();
-                    }
-                }
-            }
-            return damage;
-        }
+        this.setCheckDamageStrategy(gunCheckDamageStrategy);
+        return this.gunCheckDamageStrategy.gunCheckForDamage(rect, this.particles, DAMAGE_PER_PARTICLE);
     }
 }

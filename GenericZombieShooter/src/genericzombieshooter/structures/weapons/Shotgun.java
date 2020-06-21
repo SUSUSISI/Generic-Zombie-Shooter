@@ -28,7 +28,6 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -46,6 +45,10 @@ public class Shotgun extends Weapon {
     private static final int DAMAGE_PER_PARTICLE = 50;
     private static final double PARTICLE_SPREAD = 20.0;
     private static final int PARTICLE_LIFE = 1000;
+    
+    private GunUpdateStrategy gunUpdateStrategy = new GunUpdateStrategy();
+    private GunDrawAmmoStrategy gunDrawAmmoStrategy = new GunDrawAmmoStrategy();
+    private GunCheckDamageStrategy gunCheckDamageStrategy = new GunCheckDamageStrategy();
     
     public Shotgun() {
         super("Boomstick", KeyEvent.VK_3, "/resources/images/GZS_Boomstick.png", 
@@ -71,36 +74,15 @@ public class Shotgun extends Weapon {
     
     @Override
     public void updateWeapon(List<Zombie> zombies) {
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                // Update all particles and remove them if their life has expired or they are out of bounds.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    p.update();
-                    if(!p.isAlive() || p.outOfBounds()) {
-                        it.remove();
-                        continue;
-                    }
-                }
-            }
-        }
-        this.cool();
+    	this.setUpdateStrategy(gunUpdateStrategy);
+    	this.updateStrategy.updateWeawpon(this.particles);
+    	this.cool();
     }
     
     @Override
     public void drawAmmo(Graphics2D g2d) {
-        synchronized(this.particles) {
-            if(!this.particles.isEmpty()) {
-                // Draw all particles whose life has not yet expired.
-                g2d.setColor(Color.YELLOW);
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    if(p.isAlive()) p.draw(g2d);
-                }
-            }
-        }
+    	this.setDrawAmmoStrategy(gunDrawAmmoStrategy);
+        this.drawAmmoStrategy.drawAmmo(g2d, this.particles, Color.YELLOW);
     }
     
     @Override
@@ -110,10 +92,10 @@ public class Shotgun extends Weapon {
             if(this.canFire()) {
                 // Create new particles and add them to the list.
                 for(int i = 0; i < Shotgun.PARTICLES_PER_USE; i++) {
-                    Particle p = new Particle(theta, Shotgun.PARTICLE_SPREAD, 6.0,
+                    Particle particle = new Particle(theta, Shotgun.PARTICLE_SPREAD, 6.0,
                                               (Shotgun.PARTICLE_LIFE / (int)Globals.SLEEP_TIME), new Point2D.Double(pos.x, pos.y),
                                                new Dimension(5, 5));
-                    this.particles.add(p);
+                    this.particles.add(particle);
                 }
                 // Use up ammo.
                 if(!player.hasEffect(UnlimitedAmmo.EFFECT_NAME)) this.consumeAmmo();
@@ -126,22 +108,7 @@ public class Shotgun extends Weapon {
     
     @Override
     public int checkForDamage(Rectangle2D.Double rect) {
-        synchronized(this.particles) {
-            int damage = 0;
-            if(!this.particles.isEmpty()) {
-                // Check all particles for collisions with the target rectangle.
-                Iterator<Particle> it = this.particles.iterator();
-                while(it.hasNext()) {
-                    Particle p = it.next();
-                    // If the particle is still alive and has collided with the target.
-                    if(p.isAlive() && p.checkCollision(rect)) {
-                        // Add the damage of the particle and remove it from the list.
-                        damage += Shotgun.DAMAGE_PER_PARTICLE;
-                        it.remove();
-                    }
-                }
-            }
-            return damage;
-        }
+    	this.setCheckDamageStrategy(gunCheckDamageStrategy);
+        return this.gunCheckDamageStrategy.gunCheckForDamage(rect, this.particles, DAMAGE_PER_PARTICLE);
     }
 }

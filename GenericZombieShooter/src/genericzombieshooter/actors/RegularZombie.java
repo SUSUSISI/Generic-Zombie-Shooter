@@ -30,4 +30,3 @@ public class RegularZombie extends Zombie{
 		
 	}
 }
-
