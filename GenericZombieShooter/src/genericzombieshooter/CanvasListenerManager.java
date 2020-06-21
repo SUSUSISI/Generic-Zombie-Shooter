@@ -30,6 +30,13 @@ public class CanvasListenerManager implements Observer{
 			listeners.put(screen, canvasListener);
 	}
 	
+	public CanvasListener getCurrentListener() {
+		if(listeners.containsKey(currentScreen))
+			return listeners.get(currentScreen);
+		else
+			return null;
+	}
+	
 	private void detachListener(CanvasListener canvaslistener) {
 		canvas.removeKeyListener(canvaslistener);
 		canvas.removeMouseListener(canvaslistener);
@@ -60,16 +67,14 @@ public class CanvasListenerManager implements Observer{
 				detachListener(listeners.get(currentScreen));
 			if(baseListener != null)
 				detachListener(baseListener);
+			
+			currentScreen = null;
 		} else if (currentScreen != Globals.progress.getScreen()) {
 			Screen nextScreen = Globals.progress.getScreen();
-			if(listeners.containsKey(currentScreen)) {
-				System.out.println("detaching Listener : " + currentScreen);
+			if(listeners.containsKey(currentScreen))
 				detachListener(listeners.get(currentScreen));
-			}
-			if(listeners.containsKey(nextScreen)) {
-				System.out.println("attaching Listener : " + nextScreen);
+			if(listeners.containsKey(nextScreen))
 				attachListener(listeners.get(nextScreen));
-			} 
 			currentScreen = nextScreen;
 		}
 	}
