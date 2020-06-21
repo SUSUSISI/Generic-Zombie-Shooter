@@ -88,4 +88,22 @@ public class HandgunTest {
 		handgun.resetAmmo();
 		assertEquals(0, handgun.getAmmoLeft());
 	}
+    
+	/**
+	*Purpose: Handgun fire test. fire one bullet and check particle(bullet) is exist
+	*Input: cool(), fire()
+	*Expected:
+	*	before fire -> particle list of Handgun is empty
+	*	after fire -> particle list of Handgun is not empty
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 10; i++) handgun.cool();
+		assertEquals(true, handgun.canFire());
+		assertEquals(true, handgun.getParticles().isEmpty());
+		handgun.fire((double)48, pos, player);
+		assertEquals(false, handgun.getParticles().isEmpty());
+	}
 }
