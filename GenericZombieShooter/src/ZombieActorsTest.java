@@ -120,6 +120,27 @@ class ZombieActorsTest {
         player.addLife();
         assertEquals(4, player.getLives());
 	}
+	/**
+	 * Purpose : Add the health of player
+	 * Input :	addHealth(50), addHealth(1000)
+	 * Expected :
+	 * 			if the addHealth of player is less than the maxHealth of player, Add all extra health
+	 * 			else Add health to maxHealth
+	 * 				player health = 100
+	 * 				player health = 150
+	 */
+	@Test
+	public void testPlayerAddHealth() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+        
+		player.takeDamage(100);
+		player.addHealth(50);
+       
+		assertEquals(100, player.getHealth());
+		player.addHealth(1000);
+		assertEquals(150, player.getHealth());
+	}
 	
 
 }
