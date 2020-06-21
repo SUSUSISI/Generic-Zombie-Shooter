@@ -60,6 +60,25 @@ class ZombieActorsTest {
         assertEquals(100,player.x);
         assertEquals(100,player.y);
 	}
+	/**
+	 * Purpose : Make sure the player is alive
+	 * Input :  takeDamage 149
+	 * 		    takeDamage 2
+	 * Expected :
+	 * 			if damage is less than health
+	 * 				return true
+	 * 			else
+	 * 				return false
+	 */
+	@Test
+	public void testPlayerisAlive() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+		
+		player.takeDamage(149);
+        assertEquals(true,player.isAlive());
+        player.takeDamage(2);
+        assertEquals(false,player.isAlive());
+	}
 	
-
 }
