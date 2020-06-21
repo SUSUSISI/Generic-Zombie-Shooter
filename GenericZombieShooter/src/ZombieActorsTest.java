@@ -208,6 +208,74 @@ class ZombieActorsTest {
         assertEquals(0, player.killCount);
         
 	}
+	/**
+	 * Purpose : health level up, damage level up, speed level up and invalid level up
+	 * Input :  spendPoint (1(health) ,currentLevel(4, 6))  // current level 5 = Max level
+	 * 			spendPoint (2(damage) ,currentLevel(4, 6))	// current level 5 = Max level
+	 * 			spendPoint (3(speed)  ,currentLevel(4, 6))	// current level 5 = Max level
+	 * Expected :
+	 * 			invalid level up => return 0 -> false
+	 * 			Max Health +50 = 200
+	 * 			DamageBounus +0.2 = 0.2
+	 * 			speed +0.2 = 2.2
+	 */
+	@Test
+	public void testPlayerSkillLevelup() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+        
+        // 체력 레벨업
+        int currentLevel = 4;
+        
+        player.setSkillPoints(5);
+        player.spendPoint(1, currentLevel);
+        player.spendPoint(1, currentLevel);
+        assertEquals(200, player.getMaxHealth());
+        assertEquals(0, player.getSkillPoints());
+        
+        
+        currentLevel = 6;
+        
+        assertEquals(0, player.spendPoint(1, currentLevel));
+        player.setSkillPoints(10);
+        assertEquals(0, player.spendPoint(1, currentLevel));
+
+        
+        
+        // 데미지 레벨업
+        currentLevel = 4;
+
+        player.setSkillPoints(5);
+        player.spendPoint(2, currentLevel);
+        assertEquals(0.2, player.getDamageBonus());
+        
+        currentLevel = 6;
+        
+        assertEquals(0, player.spendPoint(2, currentLevel));
+        player.setSkillPoints(10);
+        assertEquals(0, player.spendPoint(2, currentLevel));
+
+        
+        
+        // 스피드 레벨업
+        currentLevel = 4;
+
+        player.setSkillPoints(5);
+        player.spendPoint(3, currentLevel);
+        assertEquals(2.2, player.getSpeed());
+        
+        currentLevel = 6;
+        
+        assertEquals(0, player.spendPoint(3, currentLevel));
+        player.setSkillPoints(10);
+        assertEquals(0, player.spendPoint(3, currentLevel));
+
+
+        
+        //유효하지 않는 값을 레벨업
+        assertEquals(0, player.spendPoint(5, currentLevel));
+
+	}
 	
 
 }
