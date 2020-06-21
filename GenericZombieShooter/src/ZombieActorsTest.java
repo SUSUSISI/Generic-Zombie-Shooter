@@ -80,5 +80,22 @@ class ZombieActorsTest {
         player.takeDamage(2);
         assertEquals(false,player.isAlive());
 	}
+	/**
+	 * Purpose : Count the number that the player kill
+	 * Input : addkill, addkill
+	 * Expected :
+	 * 			killCount = 2
+	 * 
+	 */
+	@Test
+	public void testPlayerkillCount() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+        
+        player.addKill();
+        player.addKill();
+        assertEquals(2, player.killCount);
+	}
 	
+
 }
