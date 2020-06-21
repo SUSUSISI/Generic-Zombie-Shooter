@@ -73,4 +73,21 @@ public class LandmineTest {
 		landmine.resetAmmo();
 		assertEquals(1, landmine.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: Test Landmine can fire more than ammoLeft
+	*Input: cool(), fire()
+	*Expected:
+	*	Landmine default ammo = 1
+	*	fire 1 time, and then check Landmine whether can fired
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 50; i++) landmine.cool();
+		assertEquals(true, landmine.canFire());
+		landmine.fire((double)48, pos, player);
+		assertEquals(false, landmine.canFire());
+	}
 }
