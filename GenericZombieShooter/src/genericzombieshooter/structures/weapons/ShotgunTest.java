@@ -87,4 +87,22 @@ public class ShotgunTest {
 		shotgun.resetAmmo();
 		assertEquals(24, shotgun.getAmmoLeft());
 	}
+	
+	/**
+	*Purpose: Shotgun fire test. fire one bullet and check particle(bullet) is exists
+	*Input: cool(), fire()
+	*Expected:
+	*	before fire -> particle list of  Shotgun is empty
+	*	after fire -> particle list of Shotgun is not empty
+	*	return false
+	*/
+	@Test
+	public void fireTest() {
+		TinySound.init();
+		for(int i = 0; i < 40; i++) shotgun.cool();
+		assertEquals(true, shotgun.canFire());
+		assertEquals(true, shotgun.getParticles().isEmpty());
+		shotgun.fire((double)48, pos, player);
+		assertEquals(false, shotgun.getParticles().isEmpty());
+	}
 }
