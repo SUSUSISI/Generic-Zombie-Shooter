@@ -160,6 +160,30 @@ class ZombieActorsTest {
 		assertEquals(50, player.getCash());
 		
 	}
+	/**
+	 * Purpose : add experience and player level up
+	 * Input : addExp 1200 , checkLevel()
+	 * Expected :
+	 * 				Exp  0 -> 1200
+	 * 			player level up
+	 * 				Level  		1 -> 2
+	 * 				Experience	1200 -> 200
+	 * 				SkillPoints 0 -> 1
+	 * 
+	 */
+	@Test
+	public void testPlayerExp() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+        
+        player.addExp(1200);
+        assertEquals(1200, player.getExp());
+        player.checkLevel();
+        assertEquals(2, player.getLevel());
+        assertEquals(200, player.getExp());
+        assertEquals(1, player.getSkillPoints());
+        
+	}
 	
 
 }
