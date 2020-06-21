@@ -276,6 +276,83 @@ class ZombieActorsTest {
         assertEquals(0, player.spendPoint(5, currentLevel));
 
 	}
+	/**
+	 * Purpose : Move zombies to player
+	 * Input : move theta(Math.atan2(100, 100) + Math.PI / 2)
+	 * Expected :
+	 * 			if the speed of the zombies is 1
+	 * 				x = 0.7071067811865476
+	 * 				y = 0.7071067811865475
+	 * 			else if the speed of the zombies is 2
+	 * 				x = 1.4142135623730951
+	 * 				y = 1.414213562373095
+	 */
+	@Test
+	public void testMoveZombies() {
+		
+    	double x = 0;
+        double y = 0;
+        double theta = Math.atan2(100, 100) + Math.PI / 2;
+        
+        Point2D.Double p_ = new Point2D.Double(x, y);
+
+        Animation a1 = new Animation(Images.ZOMBIE_REGULAR, 48, 48, 4, (int)p_.x, (int)p_.y, 200, 0, true);
+		RegularZombie zombie1 = new RegularZombie(p_, 250, 1, 1, 25, 20, a1);	
+		zombie1.move(theta);
+		assertEquals(0.7071067811865476, zombie1.x);
+		assertEquals(0.7071067811865475, zombie1.y);
+		
+		Animation a2 = new Animation(Images.BOSS_ABERRATION, 128, 128, 4, (int)p_.x, (int)p_.y, 150, 0, true);        
+        AberrationBoss zombie2 = new AberrationBoss(p_, 10000, 1, 1, 1000, a2);
+		zombie2.move(theta);
+		assertEquals(0.7071067811865476, zombie2.x);
+		assertEquals(0.7071067811865475, zombie2.y);
+		
+		Animation a3 = new Animation(Images.ZOMBIE_ACID, 64, 64, 4, (int)p_.x, (int)p_.y, 200, 0, true);
+        AcidZombie zombie3 = new AcidZombie(p_, 300, 1, 1, 100, a3);
+		zombie3.move(theta);
+		assertEquals(0.7071067811865476, zombie3.x);
+		assertEquals(0.7071067811865475, zombie3.y);
+		
+		Animation a4 = new Animation(Images.ZOMBIE_DOG, 48, 48, 4, (int)p_.x, (int)p_.y, 80, 0, true);        
+		DogZombie zombie4 = new DogZombie(p_, 100, 1, 2, 50, 30, a4);
+		zombie4.move(theta);		
+		assertEquals(1.4142135623730951, zombie4.x);
+		assertEquals(1.414213562373095, zombie4.y);
+		
+        Animation a5 = new Animation(Images.ZOMBIE_POISONFOG, 48, 48, 4, (int)p_.x, (int)p_.y, 100, 0, true);
+        PoisonFogZombie zombie5 = new PoisonFogZombie(p_, 250, 1, 2, 200, a5);
+		zombie5.move(theta);
+		assertEquals(1.4142135623730951, zombie5.x);
+		assertEquals(1.414213562373095, zombie5.y);
+		
+        Animation a6 = new Animation(Images.BOSS_STITCHES, 128, 128, 4, (int)p_.x, (int)p_.y, 150, 0, true);
+        StitchesBoss zombie6 = new StitchesBoss(p_, 15000, 4, 1, 3000, a6);
+		zombie6.move(theta);
+		assertEquals(0.7071067811865476, zombie6.x);
+		assertEquals(0.7071067811865475, zombie6.y);
+		
+		Animation a7 = new Animation(Images.ZOMBIE_TINY, 20, 20, 2, (int)p_.x, (int)p_.y, 100, 0, true);
+        TinyZombie zombie7 = new TinyZombie(p_, 100, 1, 2, 50, (ZombieMatron.EXP_VALUE / 10), a7);
+		zombie7.move(theta);
+		assertEquals(1.4142135623730951, zombie7.x);
+		assertEquals(1.414213562373095, zombie7.y); 
+		
+		
+		Animation a8 = new Animation(Images.BOSS_ZOMBAT, 64, 64, 4, (int)p_.x, (int)p_.y, 50, 0, true);
+        
+        ZombatBoss zombie8 = new ZombatBoss(p_, 2000, 1, 2, 500, a8);
+		zombie8.move(theta);
+		assertEquals(1.4142135623730951, zombie8.x);
+		assertEquals(1.414213562373095, zombie8.y);
+		
+        Animation a9 = new Animation(Images.ZOMBIE_MATRON, 64, 64, 4, (int)p_.x, (int)p_.y, 200, 0, true);
+        
+        Zombie zombie9 = new ZombieMatron(p_, 500, 1, 1, 350, a9);
+		zombie9.move(theta);
+		assertEquals(0.7071067811865476, zombie9.x);
+		assertEquals(0.7071067811865475, zombie9.y);
+	}
 	
 
 }
