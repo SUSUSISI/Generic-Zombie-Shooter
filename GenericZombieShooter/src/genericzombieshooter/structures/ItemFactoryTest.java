@@ -45,7 +45,7 @@ public class ItemFactoryTest {
 	    	Globals.gameTime.setElapsedMillis(Globals.gameTime.getElapsedMillis()+ HealthPack.SPAWN_TIME+1);
 	    	itemFactory.update(player);
 	    	
-	    	assertEquals(itemFactory.recentDroppeditem().getId(), 1);
+	    	assertEquals(itemFactory.recentDroppeditem().getId(), HealthPack.ID);
 	    	
 	    }
 	    
@@ -67,7 +67,7 @@ public class ItemFactoryTest {
 	    	Globals.gameTime.setElapsedMillis(Globals.gameTime.getElapsedMillis() + Ammo.SPAWN_TIME+1);
 	    	itemFactory.update(player);
 	    	
-	    	assertEquals(itemFactory.recentDroppeditem().getId(), 2);
+	    	assertEquals(itemFactory.recentDroppeditem().getId(), Ammo.ID);
 	    	
 	    	//if itemFactory is not empty
 	    	itemFactory.update(player);

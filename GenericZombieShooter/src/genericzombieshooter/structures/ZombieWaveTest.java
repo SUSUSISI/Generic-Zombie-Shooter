@@ -11,7 +11,6 @@ import genericzombieshooter.misc.Images;
 import genericzombieshooter.structures.ZombieWave;
 import genericzombieshooter.structures.items.HealthPack;
 import genericzombieshooter.structures.weapons.Handgun;
-import genericzombieshooter.structures.weapons.WeaponStrategy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

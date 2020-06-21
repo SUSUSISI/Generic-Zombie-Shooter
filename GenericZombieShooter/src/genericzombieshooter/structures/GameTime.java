@@ -30,7 +30,7 @@ public class GameTime {
     public void increaseOffset() { this.offset = System.currentTimeMillis() - this.lastUpdate; }
     
     
-    public setElapsedMillis(long elapsedMillis) {
+    public void setElapsedMillis(long elapsedMillis) {
     	this.elapsedMillis = elapsedMillis;
     }
     public GameTime() {

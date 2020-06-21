@@ -51,8 +51,8 @@ public class ItemFactory {
         this.nextAmmo = currentTime + Ammo.SPAWN_TIME;
     }
     
-    public void recentDroppeditem() {
-    	return this.itmesDropped.get(this.itmesDropped.size()-1);
+    public Item recentDroppeditem() {
+    	return this.itemsDropped.get(this.itemsDropped.size()-1);
     }
     
     public void reset() {
