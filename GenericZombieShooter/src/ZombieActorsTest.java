@@ -184,6 +184,30 @@ class ZombieActorsTest {
         assertEquals(1, player.getSkillPoints());
         
 	}
+	/**
+	 * Purpose : reset Statistics
+	 * Input : ammoCratesUsed = 5
+	 * 		   medkitsUsed = 3
+     *         killCount = 3
+	 * Expected :
+	 * 			ammoCratesUsed 5 -> 0
+	 * 			medkitsUsed    3 -> 0
+     *          killCount      3 -> 0
+	 */
+	@Test
+	public void testPlayerResetStatistics() {
+		Player player;
+        player = new Player(100, 100, 48, 48);
+        
+        player.ammoCratesUsed =5;
+        player.medkitsUsed = 3;
+        player.killCount = 3;
+        player.resetStatistics();
+        assertEquals(0, player.ammoCratesUsed);
+        assertEquals(0, player.medkitsUsed);
+        assertEquals(0, player.killCount);
+        
+	}
 	
 
 }
